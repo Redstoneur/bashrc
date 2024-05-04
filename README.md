@@ -52,18 +52,19 @@ To use this project, simply clone the repository to your home directory and sour
 You can get the latest version of the project by running the following commands:
 
 ```bash
-git clone https://github.com/Redstoneur/bashrc.git bashrc
-cd bashrc
-# source .bashrc # if you want to use the project in the current shell
+git clone https://github.com/Redstoneur/bashrc.git bashrc # clone the repository
+cd bashrc # change to the project directory
+source .bashrc # if you want to use the project in the current shell
 ```
 
 If you want to use the project instead of your current configuration, you can run the following commands:
 
 ```bash
-rm -rf $HOME/.bashrc
-git clone https://github.com/Redstoneur/bashrc.git $HOME
-rm -rf $HOME/LICENSE $HOME/README.md $HOME/.git $HOME/.gitignore
-source $HOME/.bashrc
+rm -rf $HOME/.bashrc $HOME/.shells # remove the existing configuration
+git clone https://github.com/Redstoneur/bashrc.git bashrc_tmp # clone the repository to a temporary directory
+mv bashrc_tmp/.* $HOME # move the configuration files to the home directory
+rm -rf bashrc_tmp # remove the temporary directory
+source $HOME/.bashrc # source the main configuration file
 ```
 
 ## License
