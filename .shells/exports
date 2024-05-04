@@ -1,0 +1,26 @@
+# Exported variables
+
+# @export
+# @name: BASHRC_FILE
+# @description: The file where the bashrc file is stored
+export BASHRC_FILE="$HOME/.bashrc"
+
+# @export
+# @name: SHELLS_DIR
+# @description: The directory where the shell files are stored
+export SHELLS_DIR="$HOME/.shells"
+
+# @export
+# @name: ALIAS_FILE
+# @description: The file where the aliases are stored
+export ALIAS_FILE="$SHELLS_DIR/alias"
+
+# @export
+# @name: FUNCTIONS_FILE
+# @description: The file where the functions are stored
+export FUNCTIONS_FILE="$SHELLS_DIR/functions"
+
+# @export
+# @name: EXPORTS_FILE
+# @description: The file where the exports are stored
+export EXPORTS_FILE="$SHELLS_DIR/exports"
