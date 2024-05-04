@@ -4,7 +4,6 @@
 
 ![License](https://img.shields.io/github/license/Redstoneur/bashrc)
 ![Top Language](https://img.shields.io/github/languages/top/Redstoneur/bashrc)
-![Python Version](https://img.shields.io/badge/python-3.8-blue)
 ![Size](https://img.shields.io/github/repo-size/Redstoneur/bashrc)
 ![Contributors](https://img.shields.io/github/contributors/Redstoneur/bashrc)
 ![Last Commit](https://img.shields.io/github/last-commit/Redstoneur/bashrc)
