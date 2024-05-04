@@ -1,0 +1,162 @@
+# ALIAS FILE
+
+# @alias
+# @name: cls
+# @description: Clear the terminal screen
+# @usage: cls
+# @param:
+alias cls="clear"
+
+# @alias
+# @name: lsr
+# @description: List files in the current directory
+# @usage: lsr
+# @param:
+alias lsr="ls /"
+
+# @alias
+# @name: ll
+# @description: List files in the current directory with details
+# @usage: ll /path/to/directory or ll
+# @param: $1: The directory to list
+alias ll="ls -alF"
+
+# @alias
+# @name: llr
+# @description: List files in the root directory with details
+# @usage: llr
+# @param:
+alias llr="ll /"
+
+# @alias
+# @name: cd_tmp
+# @description: Change directory to /tmp
+# @usage: cd_tmp
+# @param:
+alias cd_tmp="cd /tmp"
+
+# @alias
+# @name: cdu
+# @description: Change directory to the parent directory
+# @usage: cdu
+# @param:
+alias cdu="cd .."
+
+# @alias
+# @name: cdp
+# @description: Change directory to the previous directory
+# @usage: cdp
+# @param:
+alias cdp="cd -"
+
+# @alias
+# @name: h
+# @description: Display the history
+# @usage: h
+# @param:
+alias h="history"
+
+# @alias
+# @name: hf
+# @description: Search the history for a command
+# @usage: hf command
+# @param: $*: [same as grep]
+alias hf="history | grep"
+
+# @alias
+# @name: hm
+# @description: Display the history with more
+# @usage: hm
+# @param:
+alias hm="history | more"
+
+# @alias
+# @name: catB
+# @description: Display the contents of the bashrc file
+# @usage: catB
+# @param:
+alias catB="cat $BASHRC_FILE"
+
+# @alias
+# @name: catA
+# @description: Display the contents of the alias file
+# @usage: catA
+# @param:
+alias catA="cat $ALIAS_FILE"
+
+# @alias
+# @name: catF
+# @description: Display the contents of the functions file
+# @usage: catF
+# @param:
+alias catF="cat $FUNCTIONS_FILE"
+
+# @alias
+# @name: catE
+# @description: Display the contents of the exports file
+# @usage: catE
+# @param:
+alias catE="cat $EXPORTS_FILE"
+
+# @alias
+# @name: nanoB
+# @description: Edit the bashrc file with nano
+# @usage: nanoB
+# @param:
+alias nanoB="nano $BASHRC_FILE"
+
+# @alias
+# @name: nanoA
+# @description: Edit the alias file with nano
+# @usage: nanoA
+# @param:
+alias nanoA="nano $ALIAS_FILE"
+
+# @alias
+# @name: nanoF
+# @description: Edit the functions file with nano
+# @usage: nanoF
+# @param:
+alias nanoF="nano $FUNCTIONS_FILE"
+
+# @alias
+# @name: nanoE
+# @description: Edit the exports file with nano
+# @usage: nanoE
+# @param:
+alias nanoE="nano $EXPORTS_FILE"
+
+# @alias
+# @name: vimB
+# @description: Edit the bashrc file with vim
+# @usage: vimB
+# @param:
+alias vimB="vim $BASHRC_FILE"
+
+# @alias
+# @name: vimA
+# @description: Edit the alias file with vim
+# @usage: vimA
+# @param:
+alias vimA="vim $ALIAS_FILE"
+
+# @alias
+# @name: vimF
+# @description: Edit the functions file with vim
+# @usage: vimF
+# @param:
+alias vimF="vim $FUNCTIONS_FILE"
+
+# @alias
+# @name: vimE
+# @description: Edit the exports file with vim
+# @usage: vimE
+# @param:
+alias vimE="vim $EXPORTS_FILE"
+
+# @alias
+# @name: sourceB
+# @description: Source the bashrc file
+# @usage: sourceB
+# @param:
+alias sourceB="source $BASHRC_FILE"
