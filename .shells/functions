@@ -1,0 +1,241 @@
+# FUNCTIONS FILE
+
+# @function
+# @name: hfm
+# @description: Search the history for a command
+# @usage: hfm command
+# @param: $*: [same as grep]
+function hfm() {
+    hf "$*" | more
+}
+
+# @function
+# @name: my_export
+# @description: Display the exports
+# @usage: my_export
+# @param:
+function my_export() {
+  echo "Export :" # Display the title
+
+  # Read the file line by line and display the exports
+  while IFS= read -r line; do
+    # Check if the line starts with "export"
+    if [[ $line == "export"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the export
+    fi
+  done < $EXPORTS_FILE
+
+
+}
+
+# @function
+# @name: my_alias
+# @description: Display the aliases
+# @usage: my_alias
+# @param:
+function my_alias() {
+  echo "Alias :" # Display the title
+
+  # Read the file line by line and display the aliases
+  while IFS= read -r line; do
+    # Check if the line starts with "alias"
+    if [[ $line == "alias"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the alias
+    fi
+  done < $ALIAS_FILE
+}
+
+# @function
+# @name: my_function
+# @description: Display the functions
+# @usage: my_function
+# @param:
+function my_function() {
+  echo "Function :" # Display the title
+
+  local test_function=0 # Test if the line is a function
+  local function_name="" # The name of the function
+  local function_desc="" # The description of the function
+
+  # Read the file line by line and display the functions
+  while IFS= read -r line; do
+    # Check if the line starts with "# @function"
+    if [[ $line == "# @function"* ]]; then
+      test_function=1
+    # Check if the line starts with "# @name" and the test_function is 1
+    elif [[ $line == "# @name"* && $test_function -eq 1 ]]; then
+      function_name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
+
+      test_function=2
+    # Check if the line starts with "# @description" and the test_function is 2
+    elif [[ $line == "# @description"* && $test_function -eq 2 ]]; then
+      function_desc=$(echo $line | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
+
+      echo "$function_name --> $function_desc"
+
+      function_name=""
+      function_desc=""
+      test_function=0
+    else # If the line is not a function
+      test_function=0
+    fi
+  done < $FUNCTIONS_FILE
+}
+
+# @function
+# @name: my_source
+# @description: Source the files
+# @usage: my_source
+# @param:
+function my_source() {
+  echo "Source :" # Display the title
+
+  echo ".bashrc" # Display the file
+
+  # Read the file line by line and display the sources
+  while IFS= read -r line; do
+    # Check if the line starts with "source"
+    if [[ $line == "source"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the source
+    fi
+  done < $BASHRC_FILE
+}
+
+# @function
+# @name: my
+# @description: Display the exports, aliases, functions, and source the files
+# @usage: my
+# @param:
+function my() {
+  # Display the exports, aliases, functions, and source the files
+  my_export
+  echo ""
+  my_alias
+  echo ""
+  my_function
+  echo ""
+  my_source
+}
+
+# @function
+# @name: my_man
+# @description: Display the information about un alias, function, export, or source custom command
+# @usage: my_man command
+# @param: $1: The command to display the information about
+function my_man() {
+  # check if the number of parameters is correct
+  if [ $# -ne 1 ]; then
+    # check if the number of parameters is too few or too many
+    if [ $# -lt 1 ]; then
+      echo "Too few parameters : 1 parameter expected"
+    # if the number of parameters is too many
+    else
+      echo "Too many parameters : 1 parameter expected"
+    fi
+    return 1
+  fi
+
+  local name_of_command=$1 # The name of the command
+
+  # check if the name of the command is empty
+  if [ -z "$name_of_command" ]; then
+    echo "Empty command name"
+    return 1
+  fi
+
+  ## Fonction pour extraire les informations des commandes personnalisées
+  extract_custom_commands_info() {
+    local types=("ALIAS" "EXPORT" "FUNCTION" "SOURCE") # Types of commands "ALIAS", "EXPORT", "FUNCTION", "SOURCE
+    local types_complet=("ALIAS" "FUNCTION") # Types of commands with more information "ALIAS", "FUNCTION"
+
+    local type=$1 # type of the command
+
+    # check if the type is invalid
+    if [[ ! " ${types[*]} " =~ ${type} ]]; then
+        echo "Type invalide"
+        return 1
+    fi
+
+    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # name of the command
+    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # description of the command
+
+    # display the information about the command
+    echo "Commande $name :"
+    echo "- Name : $name"
+    echo "- Type : $type"
+    echo "- description : $desc"
+
+    # check if the type is in the types_complet array
+    if [[ " ${types_complet[*]} " =~ ${type} ]]; then
+        local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # usage of the command
+        local param=$(echo "$5" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # param of the command
+
+        # display the information about the command
+        echo "- Usage : $usage"
+        echo "- Param : $param"
+    fi
+
+    return 0
+  }
+
+  local types=("ALIAS" "EXPORT" "FUNCTION" "SOURCE") # Types of commands "ALIAS", "EXPORT", "FUNCTION", "SOURCE
+
+  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE) # All the data
+
+  local type="NONE" # Type of the line (alias, export, function, source)
+  local name="" # Name of the command
+  local nameLine="" # Line of the name
+  local descLine="" # Line of the description
+  local usageLine="" # Line of the usage
+  local paramLine="" # Line of the param
+
+  # Read the data line by line
+  while IFS= read -r line; do
+    # check if the line starts with "# @alias"
+    if [[ $line == "# @alias"* ]]; then
+      type="ALIAS" # set the type to "ALIAS"
+    # check if the line starts with "# @export"
+    elif [[ $line == "# @export"* ]]; then
+      type="EXPORT" # set the type to "EXPORT"
+    # check if the line starts with "# @function"
+    elif [[ $line == "# @function"* ]]; then
+      type="FUNCTION" # set the type to "FUNCTION"
+    # check if the line starts with "# @source"
+    elif [[ $line == "# @source"* ]]; then
+      type="SOURCE" # set the type to "SOURCE"
+    # check if the type is not "NONE"
+    elif [ $type != "NONE" ]; then
+      # check if the line starts with "# @name"
+      if [[ $line == "# @name"* ]]; then
+        nameLine=$line # set the nameLine to the line
+        name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # set the name to the name of the command
+      # check if the name is the name of the command
+      elif [ "$name" == "$name_of_command" ]; then
+        # check if the line starts with "# @description"
+        if [[ $line == "# @description"* ]]; then
+          descLine=$line # set the descLine to the line
+        # check if the line starts with "# @usage"
+        elif [[ $line == "# @usage"* ]]; then
+          usageLine=$line # set the usageLine to the line
+        # check if the line starts with "# @param"
+        elif [[ $line == "# @param"* ]]; then
+          paramLine=$line # set the paramLine to the line
+
+          # extract the information about the command
+          extract_custom_commands_info "$type" "$nameLine" "$descLine" "$usageLine" "$paramLine"
+
+          return 0
+        fi
+      # if the name is not the name of the command
+      else
+        type="NONE" # set the type to "NONE"
+        name="" # set the name to ""
+        nameLine="" # set the nameLine to ""
+      fi
+    fi
+  done <<< "$all_data"
+
+  # if the command is not found
+  echo "Commande non trouvée"
+
+}
