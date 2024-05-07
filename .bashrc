@@ -1,5 +1,10 @@
 # .bashrc
 
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+
 # @source
 # Name: exports
 # Description: Source the exports file
