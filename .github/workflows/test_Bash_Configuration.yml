@@ -1,6 +1,13 @@
 name: Test Bash Configuration
 
-on: [ push, pull_request ]
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
 
 jobs:
   test-bashrc:
@@ -14,12 +21,15 @@ jobs:
         run: |
           # Install any dependencies or perform setup tasks
           sudo apt-get update -y #; apt-get upgrade -y
-          sudo apt-get install dos2unix
+          
+          sudo apt-get install -y dos2unix
+          
+          dos2unix .bashrc .shells/*
+          
+          ls -alF .bashrc .shells/*
 
       - name: Source .bashrc and test commands
         run: |
-          dos2unix .bashrc .shells/*
-          
           # executer source ~/.bashrc si il y a un retour d'erreur alors afficher le message d'erreur et quitter
           if ! source ~/.bashrc
           then
