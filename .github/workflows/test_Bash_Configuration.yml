@@ -46,7 +46,7 @@ jobs:
 
       - name: Source .bashrc and test commands
         run: |
-          ls -alF~/.bashrc ~/.shells/*
+          ls -alF ~/.bashrc ~/.shells/*
           source ~/.bashrc
           
           # Test commands
@@ -82,7 +82,7 @@ jobs:
 
       - name: Test aliases dynamically
         run: |
-          ls -alF~/.bashrc ~/.shells/*
+          ls -alF ~/.bashrc ~/.shells/*
           source ~/.bashrc
           
           # Get list of aliases from my_alias command
@@ -99,7 +99,7 @@ jobs:
 
       - name: Test functions dynamically
         run: |
-          ls -alF~/.bashrc ~/.shells/*
+          ls -alF ~/.bashrc ~/.shells/*
           source ~/.bashrc
           
           # Get list of functions from my_function command
@@ -116,7 +116,7 @@ jobs:
 
       - name: Test exported variables dynamically
         run: |
-          ls -alF~/.bashrc ~/.shells/*
+          ls -alF ~/.bashrc ~/.shells/*
           source ~/.bashrc
           
           # Get list of exported variables from my_export command
