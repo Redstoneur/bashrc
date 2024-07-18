@@ -66,6 +66,15 @@ rm -rf bashrc_tmp # remove the temporary directory
 source $HOME/.bashrc # source the main configuration file
 ```
 
+### Notes on Compatibility
+
+GitHub may change encoding of the files in the repository, which can cause issues when sourcing the files in the shell.
+To avoid this, you can convert the files to Unix format by running the following command:
+
+```bash
+dos2unix .bashrc .shells/*
+```
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
