@@ -47,10 +47,8 @@ jobs:
           fi
           source ~/.bashrc
           
-          echo "Test commands"
-          my
-          
           # Test commands
+          echo "Test commands"
           
           # Test commands `my`
           if ! command -v my &> /dev/null
@@ -60,7 +58,7 @@ jobs:
           fi
           
           # Test commands `my_alias`
-          if ! command -v my-alias &> /dev/null
+          if ! command -v my_alias &> /dev/null
           then
               echo "my_alias command not found"
               exit 1
@@ -79,13 +77,42 @@ jobs:
               echo "my_variable command not found"
               exit 1
           fi
-          
-          # Avec le résultat de la commande `my_alias` tester tous les alias
-          # todo: Ajouter les alias à tester
-          
-          # Avec le résultat de la commande `my_function` tester toutes les fonctions
-          # todo: Ajouter les fonctions à tester
-          
-          # Avec le résultat de la commande `my_export` tester toutes les variables exportées
-          # todo: Ajouter les variables exportées à tester
-        
+
+      - name: Test aliases dynamically
+        run: |
+          # Get list of aliases from my_alias command
+          IFS=$'\n' read -r -d '' -a alias_list <<< "$(my_alias | sed 's/Alias ://g' | sed 's/ --> /=/g')"
+          for alias_entry in "${alias_list[@]}"; do
+            alias_name=$(echo "$alias_entry" | cut -d '=' -f 1)
+            if ! alias "$alias_name" &> /dev/null; then
+              echo "Alias $alias_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved aliases are correctly defined."
+
+      - name: Test functions dynamically
+        run: |
+          # Get list of functions from my_function command
+          IFS=$'\n' read -r -d '' -a function_list <<< "$(my_function | sed 's/Function ://g' | sed 's/ --> /=/g')"
+          for function_entry in "${function_list[@]}"; do
+            function_name=$(echo "$function_entry" | cut -d '=' -f 1)
+            if ! type "$function_name" &> /dev/null; then
+              echo "Function $function_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved functions are correctly defined."
+
+      - name: Test exported variables dynamically
+        run: |
+          # Get list of exported variables from my_export command
+          IFS=$'\n' read -r -d '' -a variable_list <<< "$(my_export | sed 's/Export ://g' | sed 's/ --> /=/g')"
+          for variable_entry in "${variable_list[@]}"; do
+            variable_name=$(echo "$variable_entry" | cut -d '=' -f 1)
+            if ! printenv "$variable_name" &> /dev/null; then
+              echo "Exported variable $variable_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved exported variables are correctly defined."
