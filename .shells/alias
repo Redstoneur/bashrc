@@ -9,7 +9,7 @@ alias cls="clear"
 
 # @alias
 # @name: lsr
-# @description: List files in the current directory
+# @description: List files in the root directory
 # @usage: lsr
 # @param:
 alias lsr="ls /"
