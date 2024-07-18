@@ -39,6 +39,7 @@ jobs:
           source ~/.bashrc
           
           echo "Test commands"
+          my
           
           # Test commands
           
