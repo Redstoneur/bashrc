@@ -13,8 +13,8 @@ function hfm() {
 # @name: compress
 # @description: Compresses a specified directory into a tar.gz archive, optionally with a custom version label.
 # @usage: compress [directory] [version (format: v*-*-*)]
-# @param: directory - Optional. The directory to compress. Defaults to the current working directory.
-# @param: version - Optional. A custom version label for the archive, in the format v*-*-*.
+# @param: [directory] - Optional. The directory to compress. Defaults to the current working directory.
+# @param: [version] - Optional. A custom version label for the archive, in the format v*-*-*.
 function compress() {
   local current_directory
   local directory
@@ -128,10 +128,64 @@ function decompress() {
 }
 
 # @function
+# @name: update_system
+# @description: Met à jour le système en détectant et en utilisant la commande appropriée pour la distribution Linux en cours d'utilisation.
+# @usage: update_system
+# @param: Aucun
+function update_system() {
+  local OS
+  local VER
+
+  # Détecter la distribution Linux
+  if [ -f /etc/os-release ]; then
+      . /etc/os-release
+      # shellcheck disable=SC2153
+      OS=$NAME
+      VER=$VERSION_ID
+  elif type lsb_release >/dev/null 2>&1; then
+      OS=$(lsb_release -si)
+      VER=$(lsb_release -sr)
+  elif [ -f /etc/lsb-release ]; then
+      . /etc/lsb-release
+      OS=$DISTRIB_ID
+      VER=$DISTRIB_RELEASE
+  elif [ -f /etc/debian_version ]; then
+      OS="Debian"
+      # shellcheck disable=SC2034
+      VER=$(cat /etc/debian_version)
+  else
+      echo "Votre distribution n'est pas reconnue. Mise à jour annulée."
+      return 1
+  fi
+
+  # Mettre à jour en fonction de la distribution
+  case $OS in
+      Ubuntu|Debian|Linux\ Mint)
+          sudo apt-get update -y && sudo apt-get upgrade -y
+          ;;
+      Fedora)
+          sudo dnf -y update && sudo dnf -y upgrade
+          ;;
+      CentOS)
+          sudo yum update -y && sudo yum upgrade -y
+          ;;
+      Arch\ Linux)
+          sudo pacman -Syu
+          ;;
+      *)
+          echo "Distribution '$OS' non prise en charge pour la mise à jour automatique."
+          return 1
+          ;;
+  esac
+
+  echo "Mise à jour terminée."
+}
+
+# @function
 # @name: my_export
 # @description: Display the exports
 # @usage: my_export
-# @param:
+# @param: Aucun
 function my_export() {
   echo "Export :" # Display the title
 
@@ -148,7 +202,7 @@ function my_export() {
 # @name: my_alias
 # @description: Display the aliases
 # @usage: my_alias
-# @param:
+# @param: Aucun
 function my_alias() {
   echo "Alias :" # Display the title
 
@@ -165,7 +219,7 @@ function my_alias() {
 # @name: my_function
 # @description: Display the functions
 # @usage: my_function
-# @param:
+# @param: Aucun
 function my_function() {
   echo "Function :" # Display the title
 
@@ -202,7 +256,7 @@ function my_function() {
 # @name: my_source
 # @description: Source the files
 # @usage: my_source
-# @param:
+# @param: Aucun
 function my_source() {
   echo "Source :" # Display the title
 
@@ -221,7 +275,7 @@ function my_source() {
 # @name: my
 # @description: Display the exports, aliases, functions, and source the files
 # @usage: my
-# @param:
+# @param: Aucun
 function my() {
   # Display the exports, aliases, functions, and source the files
   my_export
@@ -237,8 +291,13 @@ function my() {
 # @name: my_man
 # @description: Display the information about un alias, function, export, or source custom command
 # @usage: my_man command
-# @param: $1: The command to display the information about
+# @param: [command] - The name of the command to display information about
 function my_man() {
+  local name_of_command
+  local all_data
+  local type
+  local params
+
   if [ $# -ne 1 ]; then
     if [ $# -lt 1 ]; then
       echo "Too few parameters : 1 parameter expected"
@@ -248,7 +307,7 @@ function my_man() {
     return 1
   fi
 
-  local name_of_command=$1 # The name of the command to display information about
+  name_of_command=$1 # The name of the command to display information about
 
   if [ -z "$name_of_command" ]; then
     echo "Empty command name"
@@ -257,16 +316,22 @@ function my_man() {
 
   # Function to extract and display information about custom commands
   extract_custom_commands_info() {
-    local type=$1 # The type of the custom command (alias, function, export, or source)
-    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # The name of the custom command
-    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # The description of the custom command
+    local type # The type of the custom command (alias, function, export, or source)
+    local name # The name of the custom command
+    local desc # The description of the custom command
+    local usage # The usage of the custom command
+    local param_info # Information about each parameter
+
+    type=$1
+    name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # The name of the custom command
+    desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # The description of the custom command
     echo "Commande $name :"
     echo "- Name : $name"
     echo "- Type : $type"
     echo "- description : $desc"
 
     if [[ $4 != "" ]]; then
-      local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # The usage of the custom command
+      usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # The usage of the custom command
       echo "- Usage : $usage"
     fi
 
@@ -279,15 +344,15 @@ function my_man() {
     shift 4 # Ignore the first four arguments already used
     for param in "$@"; do
       if [[ $param != "" ]]; then
-        local param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # Information about each parameter
+        param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # Information about each parameter
         echo "- Param : $param_info"
       fi
     done
   }
 
-  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE) # Concatenate all custom command files
-  local type="NONE" # Initialize the type of custom command
-  local params=() # Array to store parameter lines
+  all_data=$(cat "${BASHRC_FILE}" "${ALIAS_FILE}" "${FUNCTIONS_FILE}" "${EXPORTS_FILE}") # Concatenate all custom command files
+  type="NONE" # Initialize the type of custom command
+  params=() # Array to store parameter lines
 
   # Loop through all lines in the concatenated custom command files
   while IFS= read -r line; do
