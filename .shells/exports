@@ -24,3 +24,4 @@ export FUNCTIONS_FILE="$SHELLS_DIR/functions"
 # @name: EXPORTS_FILE
 # @description: The file where the exports are stored
 export EXPORTS_FILE="$SHELLS_DIR/exports"
+
