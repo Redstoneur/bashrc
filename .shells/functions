@@ -1,6 +1,5 @@
 # FUNCTIONS FILE
 
-# Function to search the history for a command
 # @function
 # @name: hfm
 # @description: Search the history for a command
@@ -10,7 +9,6 @@ function hfm() {
     hf "$*" | more
 }
 
-# Function to compress a specified directory into a tar.gz archive
 # @function
 # @name: compress
 # @description: Compresses a specified directory into a tar.gz archive, optionally with a custom version label.
@@ -39,7 +37,6 @@ function compress() {
   echo "Directory compressed successfully into $archive_name."
 }
 
-# Function to decompress a tar.gz archive into a specified directory
 # @function
 # @name: decompress
 # @description: Decompresses a tar.gz archive into a specified directory.
@@ -75,7 +72,112 @@ function decompress() {
   echo "Archive successfully decompressed to $destination_dir."
 }
 
-# Function to display information about a custom command (alias, function, export, or source)
+# @function
+# @name: my_export
+# @description: Display the exports
+# @usage: my_export
+# @param:
+function my_export() {
+  echo "Export :" # Display the title
+
+  # Read the file line by line and display the exports
+  while IFS= read -r line; do
+    # Check if the line starts with "export"
+    if [[ $line == "export"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the export
+    fi
+  done < $EXPORTS_FILE
+}
+
+# @function
+# @name: my_alias
+# @description: Display the aliases
+# @usage: my_alias
+# @param:
+function my_alias() {
+  echo "Alias :" # Display the title
+
+  # Read the file line by line and display the aliases
+  while IFS= read -r line; do
+    # Check if the line starts with "alias"
+    if [[ $line == "alias"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the alias
+    fi
+  done < $ALIAS_FILE
+}
+
+# @function
+# @name: my_function
+# @description: Display the functions
+# @usage: my_function
+# @param:
+function my_function() {
+  echo "Function :" # Display the title
+
+  local test_function=0 # Test if the line is a function
+  local function_name="" # The name of the function
+  local function_desc="" # The description of the function
+
+  # Read the file line by line and display the functions
+  while IFS= read -r line; do
+    # Check if the line starts with "# @function"
+    if [[ $line == "# @function"* ]]; then
+      test_function=1
+    # Check if the line starts with "# @name" and the test_function is 1
+    elif [[ $line == "# @name"* && $test_function -eq 1 ]]; then
+      function_name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
+
+      test_function=2
+    # Check if the line starts with "# @description" and the test_function is 2
+    elif [[ $line == "# @description"* && $test_function -eq 2 ]]; then
+      function_desc=$(echo $line | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
+
+      echo "$function_name --> $function_desc"
+
+      function_name=""
+      function_desc=""
+      test_function=0
+    else # If the line is not a function
+      test_function=0
+    fi
+  done < $FUNCTIONS_FILE
+}
+
+# @function
+# @name: my_source
+# @description: Source the files
+# @usage: my_source
+# @param:
+function my_source() {
+  echo "Source :" # Display the title
+
+  echo ".bashrc" # Display the file
+
+  # Read the file line by line and display the sources
+  while IFS= read -r line; do
+    # Check if the line starts with "source"
+    if [[ $line == "source"* ]]; then
+      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the source
+    fi
+  done < $BASHRC_FILE
+}
+
+# @function
+# @name: my
+# @description: Display the exports, aliases, functions, and source the files
+# @usage: my
+# @param:
+function my() {
+  # Display the exports, aliases, functions, and source the files
+  my_export
+  echo ""
+  my_alias
+  echo ""
+  my_function
+  echo ""
+  my_source
+}
+
 # @function
 # @name: my_man
 # @description: Display the information about un alias, function, export, or source custom command
