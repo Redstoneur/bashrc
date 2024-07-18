@@ -26,13 +26,16 @@ jobs:
           
           dos2unix .bashrc .shells/*
           
+          echo "Check .bashrc and .shells"
           ls -alF .bashrc .shells/*
-          ls -alF ~
           
-          mv .shells/* ~
+          echo "Move .shells and .bashrc to home directory"
+          mkdir -p ~/.shells
+          mv .shells/* ~/.shells
           mv .bashrc ~
           
-          ls -alF ~
+          echo "Check .bashrc and .shells in home directory"
+          ls -alF ~/.bashrc ~/.shells/*
 
       - name: Source .bashrc and test commands
         run: |
