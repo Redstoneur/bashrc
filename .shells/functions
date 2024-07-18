@@ -1,5 +1,6 @@
 # FUNCTIONS FILE
 
+# Function to search the history for a command
 # @function
 # @name: hfm
 # @description: Search the history for a command
@@ -9,6 +10,7 @@ function hfm() {
     hf "$*" | more
 }
 
+# Function to compress a specified directory into a tar.gz archive
 # @function
 # @name: compress
 # @description: Compresses a specified directory into a tar.gz archive, optionally with a custom version label.
@@ -17,9 +19,10 @@ function hfm() {
 # @param: version - Optional. A custom version label for the archive, in the format v*-*-*.
 function compress() {
   local usage="Usage: compress [directory] [version (format: v*-*-*)]"
-  local version=$(date +"%Y-%m-%d_%H-%M-%S")
-  local directory="$(pwd)"
+  local version=$(date +"%Y-%m-%d_%H-%M-%S") # Default version label based on current date and time
+  local directory="$(pwd)" # Default directory is the current working directory
 
+  # Handle command line arguments
   if [ $# -eq 1 ]; then
     if [ -d "$1" ]; then directory=$1; elif [[ "$1" == v*-*-* ]]; then version=$1; else echo "$usage"; return 1; fi
   elif [ $# -eq 2 ]; then
@@ -29,13 +32,14 @@ function compress() {
     return 1
   fi
 
-  local directory_name=$(basename "$directory")
-  local archive_name="${directory}/${directory_name}_${version}.tar.gz"
+  local directory_name=$(basename "$directory") # Extract the name of the directory
+  local archive_name="${directory}/${directory_name}_${version}.tar.gz" # Construct the archive name
 
-  tar --exclude="./${archive_name}" -czf "$archive_name" "$directory"
+  tar --exclude="./${archive_name}" -czf "$archive_name" "$directory" # Create the tar.gz archive
   echo "Directory compressed successfully into $archive_name."
 }
 
+# Function to decompress a tar.gz archive into a specified directory
 # @function
 # @name: decompress
 # @description: Decompresses a tar.gz archive into a specified directory.
@@ -43,6 +47,7 @@ function compress() {
 # @param: <archive.tar.gz> - Mandatory. The path to the tar.gz archive to decompress.
 # @param: [destination directory] - Optional. The directory where the archive will be decompressed.
 function decompress() {
+  # Validate input arguments
   if [ $# -lt 1 ] || [ $# -gt 2 ] || [ ! -f "$1" ] || [[ "$1" != *.tar.gz ]]; then
     if [ $# -lt 1 ]; then
       echo "No argument provided."
@@ -57,126 +62,20 @@ function decompress() {
     return 1
   fi
 
-  local archive_name=$1
-  local destination_dir=${2:-$(pwd)/$(basename "$archive_name" .tar.gz)}
+  local archive_name=$1 # The tar.gz archive to decompress
+  local destination_dir=${2:-$(pwd)/$(basename "$archive_name" .tar.gz)} # Default destination directory
 
+  # Check if destination directory exists
   if [ -d "$destination_dir" ]; then
     echo "Destination directory exists."
     return 1
   fi
 
-  mkdir -p "$destination_dir" && tar -xzf "$archive_name" -C "$destination_dir"
+  mkdir -p "$destination_dir" && tar -xzf "$archive_name" -C "$destination_dir" # Decompress the archive
   echo "Archive successfully decompressed to $destination_dir."
 }
 
-# @function
-# @name: my_export
-# @description: Display the exports
-# @usage: my_export
-# @param:
-function my_export() {
-  echo "Export :" # Display the title
-
-  # Read the file line by line and display the exports
-  while IFS= read -r line; do
-    # Check if the line starts with "export"
-    if [[ $line == "export"* ]]; then
-      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the export
-    fi
-  done < $EXPORTS_FILE
-
-
-}
-
-# @function
-# @name: my_alias
-# @description: Display the aliases
-# @usage: my_alias
-# @param:
-function my_alias() {
-  echo "Alias :" # Display the title
-
-  # Read the file line by line and display the aliases
-  while IFS= read -r line; do
-    # Check if the line starts with "alias"
-    if [[ $line == "alias"* ]]; then
-      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the alias
-    fi
-  done < $ALIAS_FILE
-}
-
-# @function
-# @name: my_function
-# @description: Display the functions
-# @usage: my_function
-# @param:
-function my_function() {
-  echo "Function :" # Display the title
-
-  local test_function=0 # Test if the line is a function
-  local function_name="" # The name of the function
-  local function_desc="" # The description of the function
-
-  # Read the file line by line and display the functions
-  while IFS= read -r line; do
-    # Check if the line starts with "# @function"
-    if [[ $line == "# @function"* ]]; then
-      test_function=1
-    # Check if the line starts with "# @name" and the test_function is 1
-    elif [[ $line == "# @name"* && $test_function -eq 1 ]]; then
-      function_name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
-
-      test_function=2
-    # Check if the line starts with "# @description" and the test_function is 2
-    elif [[ $line == "# @description"* && $test_function -eq 2 ]]; then
-      function_desc=$(echo $line | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2- | sed 's/=/ --> /')
-
-      echo "$function_name --> $function_desc"
-
-      function_name=""
-      function_desc=""
-      test_function=0
-    else # If the line is not a function
-      test_function=0
-    fi
-  done < $FUNCTIONS_FILE
-}
-
-# @function
-# @name: my_source
-# @description: Source the files
-# @usage: my_source
-# @param:
-function my_source() {
-  echo "Source :" # Display the title
-
-  echo ".bashrc" # Display the file
-
-  # Read the file line by line and display the sources
-  while IFS= read -r line; do
-    # Check if the line starts with "source"
-    if [[ $line == "source"* ]]; then
-      echo $line | cut -d ' ' -f 2- | sed 's/=/ --> /' # Display the source
-    fi
-  done < $BASHRC_FILE
-}
-
-# @function
-# @name: my
-# @description: Display the exports, aliases, functions, and source the files
-# @usage: my
-# @param:
-function my() {
-  # Display the exports, aliases, functions, and source the files
-  my_export
-  echo ""
-  my_alias
-  echo ""
-  my_function
-  echo ""
-  my_source
-}
-
+# Function to display information about a custom command (alias, function, export, or source)
 # @function
 # @name: my_man
 # @description: Display the information about un alias, function, export, or source custom command
@@ -192,42 +91,45 @@ function my_man() {
     return 1
   fi
 
-  local name_of_command=$1
+  local name_of_command=$1 # The name of the command to display information about
 
   if [ -z "$name_of_command" ]; then
     echo "Empty command name"
     return 1
   fi
 
+  # Function to extract and display information about custom commands
   extract_custom_commands_info() {
-    local type=$1
-    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
-    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-)
+    local type=$1 # The type of the custom command (alias, function, export, or source)
+    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # The name of the custom command
+    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # The description of the custom command
     echo "Commande $name :"
     echo "- Name : $name"
     echo "- Type : $type"
     echo "- description : $desc"
 
     if [[ $4 != "" ]]; then
-      local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-)
+      local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # The usage of the custom command
       echo "- Usage : $usage"
     fi
 
-    # Nouvelle boucle pour gérer plusieurs paramètres
-    shift 4 # Ignorer les 4 premiers arguments déjà utilisés
+    # Loop to handle multiple parameters
+    shift 4 # Ignore the first four arguments already used
     for param in "$@"; do
       if [[ $param != "" ]]; then
-        local param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-)
+        local param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # Information about each parameter
         echo "- Param : $param_info"
       fi
     done
   }
 
-  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE)
-  local type="NONE"
-  local params=() # Tableau pour stocker les lignes de paramètres
+  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE) # Concatenate all custom command files
+  local type="NONE" # Initialize the type of custom command
+  local params=() # Array to store parameter lines
 
+  # Loop through all lines in the concatenated custom command files
   while IFS= read -r line; do
+    # Determine the type of custom command based on the line prefix
     if [[ $line == "# @alias"* ]]; then
       type="ALIAS"
     elif [[ $line == "# @export"* ]]; then
@@ -240,12 +142,13 @@ function my_man() {
       nameLine=$line
       name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
     elif [ "$name" == "$name_of_command" ]; then
+      # Extract and display information about the custom command
       if [[ $line == "# @description"* ]]; then
         descLine=$line
       elif [[ $line == "# @usage"* ]]; then
         usageLine=$line
       elif [[ $line == "# @param"* ]]; then
-        params+=("$line") # Ajouter la ligne de paramètre au tableau
+        params+=("$line") # Add parameter line to the array
       else
         if [[ ${#params[@]} -gt 0 ]]; then
           extract_custom_commands_info "$type" "$nameLine" "$descLine" "$usageLine" "${params[@]}"
@@ -253,12 +156,13 @@ function my_man() {
         fi
       fi
     else
+      # Reset variables for the next custom command
       type="NONE"
       name=""
       nameLine=""
       descLine=""
       usageLine=""
-      params=() # Réinitialiser le tableau de paramètres
+      params=() # Reset the parameter array
     fi
   done <<< "$all_data"
 
