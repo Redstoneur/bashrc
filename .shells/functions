@@ -16,25 +16,66 @@ function hfm() {
 # @param: directory - Optional. The directory to compress. Defaults to the current working directory.
 # @param: version - Optional. A custom version label for the archive, in the format v*-*-*.
 function compress() {
-  local usage="Usage: compress [directory] [version (format: v*-*-*)]"
-  local version=$(date +"%Y-%m-%d_%H-%M-%S") # Default version label based on current date and time
-  local directory="$(pwd)" # Default directory is the current working directory
+  local current_directory
+  local directory
+  local version
+  local directory_name
+  local archive_name
 
-  # Handle command line arguments
+  usage() {
+    # Displays usage information and exits.
+    echo "Usage: $0 [directory] [version (format: v*-*-*)]"
+    return 1
+  }
+
+  # Get current working directory
+  current_directory=$(pwd)
+  # Default directory to compress, set to the current working directory.
+  directory="$(pwd)"
+  # Default version label, formatted as vYYYY-MM-DD_HH-MM-SS.
+  version=$(date +"%Y-%m-%d_%H-%M-%S")
+
+  # Process command-line arguments.
   if [ $# -eq 1 ]; then
-    if [ -d "$1" ]; then directory=$1; elif [[ "$1" == v*-*-* ]]; then version=$1; else echo "$usage"; return 1; fi
+    # If there is exactly one argument, determine if it's a directory or version label.
+    if [ -d "$1" ]; then directory=$1; elif [[ "$1" == v*-*-* ]]; then version=$1; else usage; return 1; fi
   elif [ $# -eq 2 ]; then
-    if [ -d "$1" ]; then directory=$1; version=$2; else directory=$2; version=$1; fi
+    # If there are two arguments, assign them to directory and version based on their type.
+    if [[ -d "$1" || "$2" =~ ^v.*-.*-.*$ ]]; then
+        directory=$1
+        version=$2
+    elif [[ -d "$2" || "$1" =~ ^v.*-.*-.*$ ]]; then
+        directory=$2
+        version=$1
+    else
+        usage
+        return 1
+    fi
   elif [ $# -gt 2 ]; then
-    echo "$usage"
+    # If more than two arguments are provided, display usage information.
+    usage
     return 1
   fi
 
-  local directory_name=$(basename "$directory") # Extract the name of the directory
-  local archive_name="${directory}/${directory_name}_${version}.tar.gz" # Construct the archive name
+  # Get the base name of the directory to use in the archive name.
+  directory_name=$(basename "$directory")
+  # Construct the archive name using the directory name and version label.
+  archive_name="${current_directory}/${directory_name}_${version}.tar.gz"
 
-  tar --exclude="./${archive_name}" -czf "$archive_name" "$directory" # Create the tar.gz archive
-  echo "Directory compressed successfully into $archive_name."
+  echo "Creating archive: $archive_name"
+
+  # Aller dans le répertoire
+  cd "$directory" || return 1
+
+  # Create the tar.gz archive, excluding the archive file itself if it's in the same directory.
+  tar --exclude="./${archive_name}" -czf "$archive_name" ./*
+
+  cd "${current_directory}" || return 1
+
+  # Confirm success to the user.
+  echo "Directory compressed successfully into ${archive_name}."
+
+  return 0
 }
 
 # @function
@@ -44,6 +85,12 @@ function compress() {
 # @param: <archive.tar.gz> - Mandatory. The path to the tar.gz archive to decompress.
 # @param: [destination directory] - Optional. The directory where the archive will be decompressed.
 function decompress() {
+  usage() {
+    # Display usage information and exit.
+    echo "Usage: $0 <archive.tar.gz> [destination directory]"
+    return 1
+  }
+
   # Validate input arguments
   if [ $# -lt 1 ] || [ $# -gt 2 ] || [ ! -f "$1" ] || [[ "$1" != *.tar.gz ]]; then
     if [ $# -lt 1 ]; then
@@ -55,21 +102,29 @@ function decompress() {
     elif [[ "$1" != *.tar.gz ]]; then
       echo "The first argument is not a tar.gz archive."
     fi
-    echo "Usage: decompress <archive.tar.gz> [destination directory]"
+    usage
     return 1
   fi
 
-  local archive_name=$1 # The tar.gz archive to decompress
-  local destination_dir=${2:-$(pwd)/$(basename "$archive_name" .tar.gz)} # Default destination directory
+  # Assign the first argument to archive_name.
+  archive_name=$1
+  # Determine the destination directory. Use the second argument if provided,
+  # otherwise, default to a directory named after the archive within the current working directory.
+  destination_dir=${2:-$(pwd)/$(basename "$archive_name" .tar.gz)}
 
   # Check if destination directory exists
   if [ -d "$destination_dir" ]; then
     echo "Destination directory exists."
+    usage
     return 1
   fi
 
-  mkdir -p "$destination_dir" && tar -xzf "$archive_name" -C "$destination_dir" # Decompress the archive
+  # Create the destination directory and decompress the archive into it.
+  mkdir -p "$destination_dir" && tar -xzf "$archive_name" -C "$destination_dir"
+  # Confirm successful decompression.
   echo "Archive successfully decompressed to $destination_dir."
+
+  return 0
 }
 
 # @function
