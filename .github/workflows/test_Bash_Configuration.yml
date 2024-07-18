@@ -27,7 +27,7 @@ jobs:
           dos2unix .bashrc .shells/*
           
           ls -alF .bashrc .shells/*
-          pwd
+          echo "$(pwd)"
 
       - name: Source .bashrc and test commands
         run: |
