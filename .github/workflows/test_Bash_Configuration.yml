@@ -43,10 +43,12 @@ jobs:
               echo "Error: source ~/.bashrc"
               exit 1
           fi
-          source ~/.bashrc
 
       - name: Source .bashrc and test commands
         run: |
+          ll ~/.bashrc ~/.shells/*
+          source ~/.bashrc
+          
           # Test commands
           echo "Test commands"
           
@@ -80,6 +82,9 @@ jobs:
 
       - name: Test aliases dynamically
         run: |
+          ll ~/.bashrc ~/.shells/*
+          source ~/.bashrc
+          
           # Get list of aliases from my_alias command
           IFS=$'\n' read -r -d '' -a alias_list <<< "$(my_alias | sed 's/Alias ://g' | sed 's/ --> /=/g')"
           for alias_entry in "${alias_list[@]}"; do
@@ -94,6 +99,9 @@ jobs:
 
       - name: Test functions dynamically
         run: |
+          ll ~/.bashrc ~/.shells/*
+          source ~/.bashrc
+          
           # Get list of functions from my_function command
           IFS=$'\n' read -r -d '' -a function_list <<< "$(my_function | sed 's/Function ://g' | sed 's/ --> /=/g')"
           for function_entry in "${function_list[@]}"; do
@@ -108,6 +116,9 @@ jobs:
 
       - name: Test exported variables dynamically
         run: |
+          ll ~/.bashrc ~/.shells/*
+          source ~/.bashrc
+          
           # Get list of exported variables from my_export command
           IFS=$'\n' read -r -d '' -a variable_list <<< "$(my_export | sed 's/Export ://g' | sed 's/ --> /=/g')"
           for variable_entry in "${variable_list[@]}"; do
