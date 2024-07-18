@@ -72,9 +72,9 @@ jobs:
           fi
           
           # Test commands `my_export`
-          if ! command -v my_variable &> /dev/null
+          if ! command -v my_export &> /dev/null
           then
-              echo "my_variable command not found"
+              echo "my_export command not found"
               exit 1
           fi
 
