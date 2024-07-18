@@ -10,6 +10,66 @@ function hfm() {
 }
 
 # @function
+# @name: compress
+# @description: Compresses a specified directory into a tar.gz archive, optionally with a custom version label.
+# @usage: compress [directory] [version (format: v*-*-*)]
+# @param: directory - Optional. The directory to compress. Defaults to the current working directory.
+# @param: version - Optional. A custom version label for the archive, in the format v*-*-*.
+function compress() {
+  local usage="Usage: compress [directory] [version (format: v*-*-*)]"
+  local version=$(date +"%Y-%m-%d_%H-%M-%S")
+  local directory="$(pwd)"
+
+  if [ $# -eq 1 ]; then
+    if [ -d "$1" ]; then directory=$1; elif [[ "$1" == v*-*-* ]]; then version=$1; else echo "$usage"; return 1; fi
+  elif [ $# -eq 2 ]; then
+    if [ -d "$1" ]; then directory=$1; version=$2; else directory=$2; version=$1; fi
+  elif [ $# -gt 2 ]; then
+    echo "$usage"
+    return 1
+  fi
+
+  local directory_name=$(basename "$directory")
+  local archive_name="${directory}/${directory_name}_${version}.tar.gz"
+
+  tar --exclude="./${archive_name}" -czf "$archive_name" "$directory"
+  echo "Directory compressed successfully into $archive_name."
+}
+
+# @function
+# @name: decompress
+# @description: Decompresses a tar.gz archive into a specified directory.
+# @usage: decompress <archive.tar.gz> [destination directory]
+# @param: <archive.tar.gz> - Mandatory. The path to the tar.gz archive to decompress.
+# @param: [destination directory] - Optional. The directory where the archive will be decompressed.
+function decompress() {
+  if [ $# -lt 1 ] || [ $# -gt 2 ] || [ ! -f "$1" ] || [[ "$1" != *.tar.gz ]]; then
+    if [ $# -lt 1 ]; then
+      echo "No argument provided."
+    elif [ $# -gt 2 ]; then
+      echo "Too many arguments provided."
+    elif [ ! -f "$1" ]; then
+      echo "The first argument is not a file."
+    elif [[ "$1" != *.tar.gz ]]; then
+      echo "The first argument is not a tar.gz archive."
+    fi
+    echo "Usage: decompress <archive.tar.gz> [destination directory]"
+    return 1
+  fi
+
+  local archive_name=$1
+  local destination_dir=${2:-$(pwd)/$(basename "$archive_name" .tar.gz)}
+
+  if [ -d "$destination_dir" ]; then
+    echo "Destination directory exists."
+    return 1
+  fi
+
+  mkdir -p "$destination_dir" && tar -xzf "$archive_name" -C "$destination_dir"
+  echo "Archive successfully decompressed to $destination_dir."
+}
+
+# @function
 # @name: my_export
 # @description: Display the exports
 # @usage: my_export
@@ -123,119 +183,84 @@ function my() {
 # @usage: my_man command
 # @param: $1: The command to display the information about
 function my_man() {
-  # check if the number of parameters is correct
   if [ $# -ne 1 ]; then
-    # check if the number of parameters is too few or too many
     if [ $# -lt 1 ]; then
       echo "Too few parameters : 1 parameter expected"
-    # if the number of parameters is too many
     else
       echo "Too many parameters : 1 parameter expected"
     fi
     return 1
   fi
 
-  local name_of_command=$1 # The name of the command
+  local name_of_command=$1
 
-  # check if the name of the command is empty
   if [ -z "$name_of_command" ]; then
     echo "Empty command name"
     return 1
   fi
 
-  ## Fonction pour extraire les informations des commandes personnalisées
   extract_custom_commands_info() {
-    local types=("ALIAS" "EXPORT" "FUNCTION" "SOURCE") # Types of commands "ALIAS", "EXPORT", "FUNCTION", "SOURCE
-    local types_complet=("ALIAS" "FUNCTION") # Types of commands with more information "ALIAS", "FUNCTION"
-
-    local type=$1 # type of the command
-
-    # check if the type is invalid
-    if [[ ! " ${types[*]} " =~ ${type} ]]; then
-        echo "Type invalide"
-        return 1
-    fi
-
-    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # name of the command
-    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # description of the command
-
-    # display the information about the command
+    local type=$1
+    local name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
+    local desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-)
     echo "Commande $name :"
     echo "- Name : $name"
     echo "- Type : $type"
     echo "- description : $desc"
 
-    # check if the type is in the types_complet array
-    if [[ " ${types_complet[*]} " =~ ${type} ]]; then
-        local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # usage of the command
-        local param=$(echo "$5" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # param of the command
-
-        # display the information about the command
-        echo "- Usage : $usage"
-        echo "- Param : $param"
+    if [[ $4 != "" ]]; then
+      local usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-)
+      echo "- Usage : $usage"
     fi
 
-    return 0
+    # Nouvelle boucle pour gérer plusieurs paramètres
+    shift 4 # Ignorer les 4 premiers arguments déjà utilisés
+    for param in "$@"; do
+      if [[ $param != "" ]]; then
+        local param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-)
+        echo "- Param : $param_info"
+      fi
+    done
   }
 
-  local types=("ALIAS" "EXPORT" "FUNCTION" "SOURCE") # Types of commands "ALIAS", "EXPORT", "FUNCTION", "SOURCE
+  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE)
+  local type="NONE"
+  local params=() # Tableau pour stocker les lignes de paramètres
 
-  local all_data=$(cat $BASHRC_FILE $ALIAS_FILE $FUNCTIONS_FILE $EXPORTS_FILE) # All the data
-
-  local type="NONE" # Type of the line (alias, export, function, source)
-  local name="" # Name of the command
-  local nameLine="" # Line of the name
-  local descLine="" # Line of the description
-  local usageLine="" # Line of the usage
-  local paramLine="" # Line of the param
-
-  # Read the data line by line
   while IFS= read -r line; do
-    # check if the line starts with "# @alias"
     if [[ $line == "# @alias"* ]]; then
-      type="ALIAS" # set the type to "ALIAS"
-    # check if the line starts with "# @export"
+      type="ALIAS"
     elif [[ $line == "# @export"* ]]; then
-      type="EXPORT" # set the type to "EXPORT"
-    # check if the line starts with "# @function"
+      type="EXPORT"
     elif [[ $line == "# @function"* ]]; then
-      type="FUNCTION" # set the type to "FUNCTION"
-    # check if the line starts with "# @source"
+      type="FUNCTION"
     elif [[ $line == "# @source"* ]]; then
-      type="SOURCE" # set the type to "SOURCE"
-    # check if the type is not "NONE"
-    elif [ $type != "NONE" ]; then
-      # check if the line starts with "# @name"
-      if [[ $line == "# @name"* ]]; then
-        nameLine=$line # set the nameLine to the line
-        name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # set the name to the name of the command
-      # check if the name is the name of the command
-      elif [ "$name" == "$name_of_command" ]; then
-        # check if the line starts with "# @description"
-        if [[ $line == "# @description"* ]]; then
-          descLine=$line # set the descLine to the line
-        # check if the line starts with "# @usage"
-        elif [[ $line == "# @usage"* ]]; then
-          usageLine=$line # set the usageLine to the line
-        # check if the line starts with "# @param"
-        elif [[ $line == "# @param"* ]]; then
-          paramLine=$line # set the paramLine to the line
-
-          # extract the information about the command
-          extract_custom_commands_info "$type" "$nameLine" "$descLine" "$usageLine" "$paramLine"
-
+      type="SOURCE"
+    elif [[ $line == "# @name"* && "$type" != "NONE" ]]; then
+      nameLine=$line
+      name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
+    elif [ "$name" == "$name_of_command" ]; then
+      if [[ $line == "# @description"* ]]; then
+        descLine=$line
+      elif [[ $line == "# @usage"* ]]; then
+        usageLine=$line
+      elif [[ $line == "# @param"* ]]; then
+        params+=("$line") # Ajouter la ligne de paramètre au tableau
+      else
+        if [[ ${#params[@]} -gt 0 ]]; then
+          extract_custom_commands_info "$type" "$nameLine" "$descLine" "$usageLine" "${params[@]}"
           return 0
         fi
-      # if the name is not the name of the command
-      else
-        type="NONE" # set the type to "NONE"
-        name="" # set the name to ""
-        nameLine="" # set the nameLine to ""
       fi
+    else
+      type="NONE"
+      name=""
+      nameLine=""
+      descLine=""
+      usageLine=""
+      params=() # Réinitialiser le tableau de paramètres
     fi
   done <<< "$all_data"
 
-  # if the command is not found
   echo "Commande non trouvée"
-
 }
