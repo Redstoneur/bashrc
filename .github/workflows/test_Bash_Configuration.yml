@@ -13,7 +13,7 @@ jobs:
       - name: Set up environment
         run: |
           # Install any dependencies or perform setup tasks
-          sudo apt-get update -y ; apt-get upgrade -y
+          sudo apt-get update -y #; apt-get upgrade -y
           sudo apt-get install dos2unix
 
       - name: Source .bashrc and test commands
