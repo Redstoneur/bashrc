@@ -47,6 +47,7 @@ jobs:
       - name: Source .bashrc and test commands
         run: |
           ls -alF ~/.bashrc ~/.shells/*
+          echo "${HOME}"
           source ~/.bashrc
           
           # Test commands
