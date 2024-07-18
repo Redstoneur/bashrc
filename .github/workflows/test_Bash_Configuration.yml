@@ -1,0 +1,69 @@
+name: Test Bash Configuration
+
+on: [ push, pull_request ]
+
+jobs:
+  test-bashrc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up environment
+        run: |
+          # Install any dependencies or perform setup tasks
+          sudo apt-get update -y ; apt-get upgrade -y
+          sudo apt-get install dos2unix
+
+      - name: Source .bashrc and test commands
+        run: |
+          dos2unix .bashrc .shells/*
+          
+          # executer source ~/.bashrc si il y a un retour d'erreur alors afficher le message d'erreur et quitter
+          if ! source ~/.bashrc
+          then
+              echo "Error: source ~/.bashrc"
+              exit 1
+          fi
+          source ~/.bashrc
+          
+          # Test commands
+          
+          # Test commands `my`
+          if ! command -v my &> /dev/null
+          then
+              echo "my command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_alias`
+          if ! command -v my-alias &> /dev/null
+          then
+              echo "my_alias command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_function`
+          if ! command -v my_function &> /dev/null
+          then
+              echo "my_function command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_export`
+          if ! command -v my_variable &> /dev/null
+          then
+              echo "my_variable command not found"
+              exit 1
+          fi
+          
+          # Avec le résultat de la commande `my_alias` tester tous les alias
+          # todo: Ajouter les alias à tester
+          
+          # Avec le résultat de la commande `my_function` tester toutes les fonctions
+          # todo: Ajouter les fonctions à tester
+          
+          # Avec le résultat de la commande `my_export` tester toutes les variables exportées
+          # todo: Ajouter les variables exportées à tester
+        
