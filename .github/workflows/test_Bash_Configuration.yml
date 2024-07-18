@@ -22,7 +22,7 @@ jobs:
           # Install any dependencies or perform setup tasks
           sudo apt-get update -y #; apt-get upgrade -y
           
-          sudo apt-get install -y dos2unix
+          sudo apt-get install -y dos2unix grep sed coreutils tar gzip
           
           dos2unix .bashrc .shells/*
           
@@ -46,8 +46,6 @@ jobs:
 
       - name: Source .bashrc and test commands
         run: |
-          ls -alF ~/.bashrc ~/.shells/*
-          echo "${HOME}"
           source ~/.bashrc
           
           # Test commands
@@ -83,8 +81,6 @@ jobs:
 
       - name: Test aliases dynamically
         run: |
-          ls -alF ~/.bashrc ~/.shells/*
-          echo "${HOME}"
           source ~/.bashrc
           
           # Get list of aliases from my_alias command
@@ -101,8 +97,6 @@ jobs:
 
       - name: Test functions dynamically
         run: |
-          ls -alF ~/.bashrc ~/.shells/*
-          echo "${HOME}"
           source ~/.bashrc
           
           # Get list of functions from my_function command
@@ -119,8 +113,6 @@ jobs:
 
       - name: Test exported variables dynamically
         run: |
-          ls -alF ~/.bashrc ~/.shells/*
-          echo "${HOME}"
           source ~/.bashrc
           
           # Get list of exported variables from my_export command
