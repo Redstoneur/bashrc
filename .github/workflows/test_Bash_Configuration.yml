@@ -28,6 +28,11 @@ jobs:
           
           ls -alF .bashrc .shells/*
           ls -alF ~
+          
+          mv .shells/* ~
+          mv .bashrc ~
+          
+          ls -alF ~
 
       - name: Source .bashrc and test commands
         run: |
