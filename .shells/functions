@@ -127,6 +127,117 @@ function decompress() {
   return 0
 }
 
+# Function to copy a directory to another location with options to preserve attributes
+# @function
+# @name: copy_directory
+# @description: Copies a source directory to a specified destination directory, preserving file attributes.
+# @usage: copy_directory <source_directory> [destination_directory]
+# @param: source_directory - Mandatory. The path to the source directory to copy.
+# @param: destination_directory - Optional. The destination directory path. Defaults to the current working directory if not specified.
+function copy_directory() {
+  usage() {
+    echo "Usage: $0 <source_directory> [destination_directory]"
+    return 1
+  }
+
+  # Check the number of arguments
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    usage
+  fi
+
+  local SOURCE_DIR=$1
+
+  # If the second argument is not provided, use the current directory
+  local DEST_DIR=${2:-$(pwd)}
+
+  # Check if source and destination directories are the same
+  if [ "$SOURCE_DIR" -ef "$DEST_DIR" ]; then
+    echo "The source and destination directories cannot be the same."
+    return 1
+  fi
+
+  # Check if the source directory exists
+  if [ ! -d "$SOURCE_DIR" ]; then
+    echo "The source directory does not exist."
+    return 1
+  fi
+
+  # Create the destination directory if it does not exist
+  mkdir -p "$DEST_DIR"
+
+  # Empty the destination directory to make it identical to the source
+  rm -rf "$DEST_DIR"/*
+
+  # Copy the source directory to the destination with identical rights and dates
+  cp -a "$SOURCE_DIR"/. "$DEST_DIR"
+
+  echo "Directory copy was successful."
+}
+
+# Function to verify the copy of a directory with an option to exclude .git directories
+# @function
+# @name: verify_copy
+# @description: Verifies if the copy of a source directory to a destination directory is identical, with an option to exclude .git directories.
+# @usage: verify_copy <exclude_git: 0|1> <source_directory> [destination_directory]
+# @param: exclude_git - Mandatory. Indicates whether to exclude .git directories (1) or not (0).
+# @param: source_directory - Mandatory. The path to the source directory to verify.
+# @param: destination_directory - Optional. The destination directory path. Defaults to the current working directory if not specified.
+function verify_copy() {
+  usage() {
+    echo "Usage: $0 <exclude_git: 0|1> <source_directory> [destination_directory]"
+    return 1
+  }
+
+  # Check the number of arguments
+  if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+    usage
+  fi
+
+  local EXCLUDE_GIT=$1
+  local SOURCE_DIR=$2
+  local DEST_DIR=${3:-$(pwd)}
+
+  # Check if the EXCLUDE_GIT argument is valid
+  if [ "$EXCLUDE_GIT" -ne 0 ] && [ "$EXCLUDE_GIT" -ne 1 ]; then
+    usage
+  fi
+
+  # Check if the source and destination directories exist
+  if [ ! -d "$SOURCE_DIR" ]; then
+    echo "The source directory does not exist."
+    return 1
+  fi
+
+  if [ ! -d "$DEST_DIR" ]; then
+    echo "The destination directory does not exist."
+    return 1
+  fi
+
+  # Check if source and destination directories are the same
+  if [ "$SOURCE_DIR" -ef "$DEST_DIR" ]; then
+    echo "The source and destination directories cannot be the same."
+    return 1
+  fi
+
+  # Build the comparison command
+  local diff_output
+  if [ "$EXCLUDE_GIT" -eq 1 ]; then
+    diff_output=$(diff -r --no-dereference --brief --exclude=".git" "$SOURCE_DIR" "$DEST_DIR")
+  else
+    diff_output=$(diff -r --no-dereference --brief "$SOURCE_DIR" "$DEST_DIR")
+  fi
+
+  # Display the comparison result
+  if [ -z "$diff_output" ]; then
+    echo "The directories are strictly identical."
+    return 0
+  else
+    echo "The directories are not identical:"
+    echo "$diff_output"
+    return 1
+  fi
+}
+
 # @function
 # @name: update_system
 # @description: Met à jour le système en détectant et en utilisant la commande appropriée pour la distribution Linux en cours d'utilisation.
@@ -301,6 +412,7 @@ function my_man() {
   if [ $# -ne 1 ]; then
     if [ $# -lt 1 ]; then
       echo "Too few parameters : 1 parameter expected"
+      my_man "my_man"
     else
       echo "Too many parameters : 1 parameter expected"
     fi
