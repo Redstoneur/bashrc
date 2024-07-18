@@ -412,9 +412,12 @@ function my_man() {
   if [ $# -ne 1 ]; then
     if [ $# -lt 1 ]; then
       echo "Too few parameters : 1 parameter expected"
+      echo
       my_man "my_man"
     else
       echo "Too many parameters : 1 parameter expected"
+      echo
+      my_man "my_man"
     fi
     return 1
   fi
@@ -456,7 +459,7 @@ function my_man() {
     shift 4 # Ignore the first four arguments already used
     for param in "$@"; do
       if [[ $param != "" ]]; then
-        param_info=$(echo "$param" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # Information about each parameter
+        param_info=$(echo "${param}" | grep -oE "@param: [^\"]+" | cut -d ' ' -f 2-) # Information about each parameter
         echo "- Param : $param_info"
       fi
     done
@@ -479,7 +482,7 @@ function my_man() {
       type="SOURCE"
     elif [[ $line == "# @name"* && "$type" != "NONE" ]]; then
       nameLine=$line
-      name=$(echo $line | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
+      name=$(echo "${line}" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-)
     elif [ "$name" == "$name_of_command" ]; then
       # Extract and display information about the custom command
       if [[ $line == "# @description"* ]]; then
