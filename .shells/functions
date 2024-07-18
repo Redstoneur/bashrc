@@ -215,6 +215,11 @@ function my_man() {
       echo "- Usage : $usage"
     fi
 
+    # if type is export, don't continue
+    if [[ $type == "EXPORT" ]]; then
+      return 0
+    fi
+
     # Loop to handle multiple parameters
     shift 4 # Ignore the first four arguments already used
     for param in "$@"; do
