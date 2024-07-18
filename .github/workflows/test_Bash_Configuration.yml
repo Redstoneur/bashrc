@@ -38,6 +38,8 @@ jobs:
           fi
           source ~/.bashrc
           
+          echo "Test commands"
+          
           # Test commands
           
           # Test commands `my`
