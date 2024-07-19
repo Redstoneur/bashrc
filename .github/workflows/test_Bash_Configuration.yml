@@ -46,7 +46,12 @@ jobs:
 
       - name: Source .bashrc and test commands
         run: |
-          source ~/.bashrc
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
           
           # Test commands
           echo "Test commands"
@@ -81,13 +86,18 @@ jobs:
 
       - name: Test aliases dynamically
         run: |
-          source ~/.bashrc
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
           
           # Get list of aliases from my_alias command
           IFS=$'\n' read -r -d '' -a alias_list <<< "$(my_alias | sed 's/Alias ://g' | sed 's/ --> /=/g')"
           for alias_entry in "${alias_list[@]}"; do
-            echo "${alias_entry}"
             alias_name=$(echo "$alias_entry" | cut -d '=' -f 1)
+            echo "${alias_name}"
             if ! alias "$alias_name" &> /dev/null; then
               echo "Alias $alias_name not found"
               exit 1
@@ -97,13 +107,18 @@ jobs:
 
       - name: Test functions dynamically
         run: |
-          source ~/.bashrc
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
           
           # Get list of functions from my_function command
           IFS=$'\n' read -r -d '' -a function_list <<< "$(my_function | sed 's/Function ://g' | sed 's/ --> /=/g')"
           for function_entry in "${function_list[@]}"; do
-            echo "${function_entry}"
             function_name=$(echo "$function_entry" | cut -d '=' -f 1)
+            echo "${function_name}"
             if ! type "$function_name" &> /dev/null; then
               echo "Function $function_name not found"
               exit 1
@@ -113,13 +128,18 @@ jobs:
 
       - name: Test exported variables dynamically
         run: |
-          source ~/.bashrc
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
           
           # Get list of exported variables from my_export command
           IFS=$'\n' read -r -d '' -a variable_list <<< "$(my_export | sed 's/Export ://g' | sed 's/ --> /=/g')"
           for variable_entry in "${variable_list[@]}"; do
-            echo "${variable_entry}"
             variable_name=$(echo "$variable_entry" | cut -d '=' -f 1)
+            echo "${variable_name}"
             if ! printenv "$variable_name" &> /dev/null; then
               echo "Exported variable $variable_name not found"
               exit 1
