@@ -1,0 +1,148 @@
+name: Test Bash Configuration
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+
+jobs:
+  test-bashrc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up environment
+        run: |
+          # Install any dependencies or perform setup tasks
+          sudo apt-get update -y #; apt-get upgrade -y
+          
+          sudo apt-get install -y dos2unix grep sed coreutils tar gzip
+          
+          dos2unix .bashrc .shells/*
+          
+          echo "Check .bashrc and .shells"
+          ls -alF .bashrc .shells/*
+          
+          echo "Move .shells and .bashrc to home directory"
+          mkdir -p ~/.shells
+          mv .shells/* ~/.shells
+          mv .bashrc ~
+          
+          echo "Check .bashrc and .shells in home directory"
+          ls -alF ~/.bashrc ~/.shells/*
+          
+          # Execute source ~/.bashrc if there is an error return then display the error message and exit
+          if ! source ~/.bashrc
+          then
+              echo "Error: source ~/.bashrc"
+              exit 1
+          fi
+
+      - name: Source .bashrc and test commands
+        run: |
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
+          
+          # Test commands
+          echo "Test commands"
+          
+          # Test commands `my`
+          if ! command -v my &> /dev/null
+          then
+              echo "my command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_alias`
+          if ! command -v my_alias &> /dev/null
+          then
+              echo "my_alias command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_function`
+          if ! command -v my_function &> /dev/null
+          then
+              echo "my_function command not found"
+              exit 1
+          fi
+          
+          # Test commands `my_export`
+          if ! command -v my_export &> /dev/null
+          then
+              echo "my_export command not found"
+              exit 1
+          fi
+
+      - name: Test aliases dynamically
+        run: |
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
+          
+          # Get list of aliases from my_alias command
+          IFS=$'\n' read -r -d '' -a alias_list <<< "$(my_alias | sed 's/Alias ://g' | sed 's/ --> /=/g')"
+          for alias_entry in "${alias_list[@]}"; do
+            alias_name=$(echo "$alias_entry" | cut -d '=' -f 1)
+            echo "${alias_name}"
+            if ! alias "$alias_name" &> /dev/null; then
+              echo "Alias $alias_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved aliases are correctly defined."
+
+      - name: Test functions dynamically
+        run: |
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
+          
+          # Get list of functions from my_function command
+          IFS=$'\n' read -r -d '' -a function_list <<< "$(my_function | sed 's/Function ://g' | sed 's/ --> /=/g')"
+          for function_entry in "${function_list[@]}"; do
+            function_name=$(echo "$function_entry" | cut -d '=' -f 1)
+            echo "${function_name}"
+            if ! type "$function_name" &> /dev/null; then
+              echo "Function $function_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved functions are correctly defined."
+
+      - name: Test exported variables dynamically
+        run: |
+          # Debugging: Ensure .bashrc can be sourced without errors
+          cat ~/.bashrc
+          source ~/.bashrc || { echo "Failed to source .bashrc"; exit 1; }
+      
+          # Debugging: Check if my_alias is available
+          type my_alias || { echo "my_alias command not found"; exit 1; }
+          
+          # Get list of exported variables from my_export command
+          IFS=$'\n' read -r -d '' -a variable_list <<< "$(my_export | sed 's/Export ://g' | sed 's/ --> /=/g')"
+          for variable_entry in "${variable_list[@]}"; do
+            variable_name=$(echo "$variable_entry" | cut -d '=' -f 1)
+            echo "${variable_name}"
+            if ! printenv "$variable_name" &> /dev/null; then
+              echo "Exported variable $variable_name not found"
+              exit 1
+            fi
+          done
+          echo "All dynamically retrieved exported variables are correctly defined."
