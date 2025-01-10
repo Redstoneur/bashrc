@@ -1,13 +1,16 @@
 name: Test Bash Configuration
 
 on:
+  push:
+    branches:
+      - master
+      - dev
+      - feature/*
   pull_request:
     branches:
       - master
       - dev
-  push:
-    branches:
-      - master
+      - feature/*
 
 jobs:
   test-bashrc:
