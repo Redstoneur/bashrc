@@ -64,7 +64,7 @@ function compress() {
 
   echo "Creating archive: $archive_name"
 
-  # Aller dans le répertoire
+  # Change to the target directory
   cd "$directory" || return 1
 
   # Create the tar.gz archive, excluding the archive file itself if it's in the same directory.
@@ -240,14 +240,14 @@ function verify_copy() {
 
 # @function
 # @name: update_system
-# @description: Met à jour le système en détectant et en utilisant la commande appropriée pour la distribution Linux en cours d'utilisation.
+# @description: Updates the system by detecting and using the appropriate package manager command for the current Linux distribution.
 # @usage: update_system
-# @param: Aucun
+# @param: None
 function update_system() {
   local OS
   local VER
 
-  # Détecter la distribution Linux
+  # Detect the Linux distribution
   if [ -f /etc/os-release ]; then
       . /etc/os-release
       # shellcheck disable=SC2153
@@ -265,11 +265,11 @@ function update_system() {
       # shellcheck disable=SC2034
       VER=$(cat /etc/debian_version)
   else
-      echo "Votre distribution n'est pas reconnue. Mise à jour annulée."
+      echo "Your distribution is not recognized. Update cancelled."
       return 1
   fi
 
-  # Mettre à jour en fonction de la distribution
+  # Update according to the distribution
   case $OS in
       Ubuntu|Debian|Linux\ Mint)
           sudo apt-get update -y && sudo apt-get upgrade -y
@@ -284,21 +284,21 @@ function update_system() {
           sudo pacman -Syu
           ;;
       *)
-          echo "Distribution '$OS' non prise en charge pour la mise à jour automatique."
+          echo "Distribution '$OS' is not supported for automatic update."
           return 1
           ;;
   esac
 
-  echo "Mise à jour terminée."
+  echo "Update completed."
 }
 
 # @function
 # @name: my_export
 # @description: Display the exports
 # @usage: my_export
-# @param: Aucun
+# @param: None
 function my_export() {
-  echo "Export :" # Display the title
+  echo "Exports:" # Display the title
 
   # Read the file line by line and display the exports
   while IFS= read -r line; do
@@ -313,9 +313,9 @@ function my_export() {
 # @name: my_alias
 # @description: Display the aliases
 # @usage: my_alias
-# @param: Aucun
+# @param: None
 function my_alias() {
-  echo "Alias :" # Display the title
+  echo "Aliases:" # Display the title
 
   # Read the file line by line and display the aliases
   while IFS= read -r line; do
@@ -330,9 +330,9 @@ function my_alias() {
 # @name: my_function
 # @description: Display the functions
 # @usage: my_function
-# @param: Aucun
+# @param: None
 function my_function() {
-  echo "Function :" # Display the title
+  echo "Functions:" # Display the title
 
   local test_function=0 # Test if the line is a function
   local function_name="" # The name of the function
@@ -367,9 +367,9 @@ function my_function() {
 # @name: my_source
 # @description: Source the files
 # @usage: my_source
-# @param: Aucun
+# @param: None
 function my_source() {
-  echo "Source :" # Display the title
+  echo "Source:" # Display the title
 
   echo ".bashrc" # Display the file
 
@@ -386,7 +386,7 @@ function my_source() {
 # @name: my
 # @description: Display the exports, aliases, functions, and source the files
 # @usage: my
-# @param: Aucun
+# @param: None
 function my() {
   # Display the exports, aliases, functions, and source the files
   my_export
@@ -400,7 +400,7 @@ function my() {
 
 # @function
 # @name: my_man
-# @description: Display the information about un alias, function, export, or source custom command
+# @description: Display the information about an alias, function, export, or source custom command
 # @usage: my_man command
 # @param: [command] - The name of the command to display information about
 function my_man() {
@@ -411,11 +411,11 @@ function my_man() {
 
   if [ $# -ne 1 ]; then
     if [ $# -lt 1 ]; then
-      echo "Too few parameters : 1 parameter expected"
+      echo "Too few parameters: 1 parameter expected"
       echo
       my_man "my_man"
     else
-      echo "Too many parameters : 1 parameter expected"
+      echo "Too many parameters: 1 parameter expected"
       echo
       my_man "my_man"
     fi
@@ -440,10 +440,10 @@ function my_man() {
     type=$1
     name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # The name of the custom command
     desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # The description of the custom command
-    echo "Commande $name :"
+    echo "Command $name:"
     echo "- Name : $name"
     echo "- Type : $type"
-    echo "- description : $desc"
+    echo "- Description : $desc"
 
     if [[ $4 != "" ]]; then
       usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # The usage of the custom command
@@ -508,5 +508,5 @@ function my_man() {
     fi
   done <<< "$all_data"
 
-  echo "Commande non trouvée"
+  echo "Command not found"
 }

@@ -4,34 +4,33 @@
 # @name: BASHRC_FILE
 # @description: The file where the bashrc file is stored
 # @usage: echo $BASHRC_FILE
-# @param: is not a command
+# @param: not a command
 export BASHRC_FILE="$HOME/.bashrc"
 
 # @export
 # @name: SHELLS_DIR
 # @description: The directory where the shell files are stored
 # @usage: echo $SHELLS_DIR
-# @param: is not a command
+# @param: not a command
 export SHELLS_DIR="$HOME/.shells"
 
 # @export
 # @name: ALIAS_FILE
 # @description: The file where the aliases are stored
 # @usage: echo $ALIAS_FILE
-# @param: is not a command
+# @param: not a command
 export ALIAS_FILE="$SHELLS_DIR/alias"
 
 # @export
 # @name: FUNCTIONS_FILE
 # @description: The file where the functions are stored
 # @usage: echo $FUNCTIONS_FILE
-# @param: is not a command
+# @param: not a command
 export FUNCTIONS_FILE="$SHELLS_DIR/functions"
 
 # @export
 # @name: EXPORTS_FILE
 # @description: The file where the exports are stored
 # @usage: echo $EXPORTS_FILE
-# @param: is not a command
+# @param: not a command
 export EXPORTS_FILE="$SHELLS_DIR/exports"
-
