@@ -313,7 +313,7 @@ function update_bashrc() {
     return 1
   fi
 
-  git clone --depth 1 "$remote" /tmp/bashrc-upgrade
+  git clone "$remote" /tmp/bashrc-upgrade
   if [ $? -ne 0 ]; then
     echo "Failed to clone repository. Aborting."
     return 1
