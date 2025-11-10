@@ -295,9 +295,9 @@ function update_system() {
 
 # @function
 # @name: update_bashrc
-# @description: Fetches a specified branch or release (tag) from the upstream repository (https://github.com/Redstoneur/bashrc), and replaces the user's $HOME/.bashrc and $HOME/.shells with the version from that ref. If called without parameters, the function attempts to use the latest tag; if there are no tags it falls back to the 'master' or 'main' branch. The fetched content is cloned into a temporary directory, a backup of existing files is created, files are replaced, the new .bashrc is sourced, and the temporary clone is removed at the end.
+# @description: Fetches a specified branch or release (tag) from the upstream repository (https://github.com/Redstoneur/bashrc), and replaces the user's $HOME/.bashrc and $HOME/.shells with the version from that ref. If called without parameters, the function attempts to use the latest tag; if there are no tags it falls back to the 'master' branch. The fetched content is cloned into a temporary directory, a backup of existing files is created, files are replaced, the new .bashrc is sourced, and the temporary clone is removed at the end.
 # @usage: update_bashrc [<branch-or-tag>]
-# @param: [branch-or-tag] - Optional. A branch name or a tag (release) to fetch. If omitted, the latest tag is used; otherwise use master/main.
+# @param: [branch-or-tag] - Optional. A branch name or a tag (release) to fetch. If omitted, the latest tag is used; otherwise use master.
 function update_bashrc() {
   local ref="$1"
   local remote="https://github.com/Redstoneur/bashrc"
@@ -336,10 +336,8 @@ function update_bashrc() {
     else
       if git show-ref --verify --quiet refs/heads/master; then
         git checkout master
-      elif git show-ref --verify --quiet refs/heads/main; then
-        git checkout main
       else
-        echo "No tags or master/main branch found. Aborting."
+        echo "No tags or master branch found. Aborting."
         rm -rf /tmp/bashrc-upgrade
         return 1
       fi

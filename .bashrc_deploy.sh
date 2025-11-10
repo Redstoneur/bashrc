@@ -60,10 +60,8 @@ function install() {
     else
       if git show-ref --verify --quiet refs/heads/master; then
         git checkout master
-      elif git show-ref --verify --quiet refs/heads/main; then
-        git checkout main
       else
-        echo "No tags or master/main branch found. Aborting."
+        echo "No tags or master branch found. Aborting."
         rm -rf /tmp/bashrc-upgrade
         return 1
       fi
@@ -157,10 +155,8 @@ function update() {
     else
       if git show-ref --verify --quiet refs/heads/master; then
         git checkout master
-      elif git show-ref --verify --quiet refs/heads/main; then
-        git checkout main
       else
-        echo "No tags or master/main branch found. Aborting."
+        echo "No tags or master branch found. Aborting."
         rm -rf /tmp/bashrc-upgrade
         return 1
       fi
