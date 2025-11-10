@@ -301,7 +301,7 @@ function update_system() {
 function update_bashrc() {
   local ref="$1"
   local remote="https://github.com/Redstoneur/bashrc"
-  local home_bashrc home_shells ts
+  local home_bashrc home_shells ts latest_tag
 
   home_bashrc="$HOME/.bashrc"
   home_shells="$HOME/.shells"
@@ -328,6 +328,7 @@ function update_bashrc() {
       rm -rf /tmp/bashrc-upgrade
       return 1
     fi
+    latest_tag="$ref"
   else
     latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)" 2>/dev/null)
     if [ -n "$latest_tag" ]; then
@@ -374,6 +375,10 @@ function update_bashrc() {
   cd || return 1
   rm -rf /tmp/bashrc-upgrade
 
+  # Update the file that contains the current bashrc version
+  echo "$latest_tag" > "$HOME/.bashrc_version" 2>/dev/null || echo "unknown" > "$HOME/.bashrc_version" 2>/dev/null
+
+  # Restart the shell to apply changes
   exec "$SHELL" -l
 
   return 0
