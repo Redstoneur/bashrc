@@ -94,6 +94,11 @@ Basic usage:
 
 # uninstall
 ./.bashrc_deploy.sh --uninstall
+```
+
+Notes:
+
+- The script requires `git` to clone the repository.
 
 ## License
 
