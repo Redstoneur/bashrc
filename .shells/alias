@@ -29,6 +29,20 @@ alias ll="ls -alF"
 alias llr="ll /"
 
 # @alias
+# @name: la
+# @description: List almost all files (exclude . and ..)
+# @usage: la
+# @param: None
+alias la='ls -A'
+
+# @alias
+# @name: l
+# @description: List files in columns with indicators (classify)
+# @usage: l
+# @param: None
+alias l='ls -CF'
+
+# @alias
 # @name: cd_tmp
 # @description: Change directory to /tmp
 # @usage: cd_tmp
