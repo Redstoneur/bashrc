@@ -152,6 +152,9 @@ function install() {
   # Save the current version
   echo "$latest_tag" > "$HOME/.bashrc_version" 2>/dev/null
 
+  # Delete deploy script after installation
+  rm -- "$0" 2>/dev/null
+
   # Restart the shell to apply changes
   exec "$SHELL" -l
 
@@ -256,6 +259,9 @@ function update() {
   # Update the file that contains the current bashrc version
   echo "$latest_tag" > "$HOME/.bashrc_version" 2>/dev/null || echo "unknown" > "$HOME/.bashrc_version" 2>/dev/null
 
+  # Delete deploy script after installation
+  rm -- "$0" 2>/dev/null
+
   # Restart the shell to apply changes
   exec "$SHELL" -l
 
@@ -310,6 +316,9 @@ function uninstall() {
     echo "Failed to source restored .bashrc. Aborting."
     return 1
   fi
+
+  # Delete deploy script after installation
+  rm -- "$0" 2>/dev/null
 
   # Restart the shell to apply changes
   exec "$SHELL" -l
