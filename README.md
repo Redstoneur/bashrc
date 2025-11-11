@@ -75,6 +75,31 @@ To avoid this, you can convert the files to Unix format by running the following
 dos2unix .bashrc .shells/*
 ```
 
+## Deployer (deploy.sh)
+
+A script named `.bashrc_deploy.sh` has been added to simplify deployment on Linux machines. It allows you to:
+
+- Install the project by fetching the latest GitHub release (or the `master` branch as a fallback),
+- Update an existing installation,
+- Uninstall the project.
+
+Basic usage:
+
+```bash
+# install
+./.bashrc_deploy.sh --install
+
+# update an existing installation
+./.bashrc_deploy.sh --update
+
+# uninstall
+./.bashrc_deploy.sh --uninstall
+```
+
+Notes:
+
+- The script requires `git` to clone the repository.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.

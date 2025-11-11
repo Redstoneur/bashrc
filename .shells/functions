@@ -64,7 +64,7 @@ function compress() {
 
   echo "Creating archive: $archive_name"
 
-  # Aller dans le répertoire
+  # Change to the target directory
   cd "$directory" || return 1
 
   # Create the tar.gz archive, excluding the archive file itself if it's in the same directory.
@@ -240,14 +240,14 @@ function verify_copy() {
 
 # @function
 # @name: update_system
-# @description: Met à jour le système en détectant et en utilisant la commande appropriée pour la distribution Linux en cours d'utilisation.
+# @description: Updates the system by detecting and using the appropriate package manager command for the current Linux distribution.
 # @usage: update_system
-# @param: Aucun
+# @param: None
 function update_system() {
   local OS
   local VER
 
-  # Détecter la distribution Linux
+  # Detect the Linux distribution
   if [ -f /etc/os-release ]; then
       . /etc/os-release
       # shellcheck disable=SC2153
@@ -265,11 +265,11 @@ function update_system() {
       # shellcheck disable=SC2034
       VER=$(cat /etc/debian_version)
   else
-      echo "Votre distribution n'est pas reconnue. Mise à jour annulée."
+      echo "Your distribution is not recognized. Update cancelled."
       return 1
   fi
 
-  # Mettre à jour en fonction de la distribution
+  # Update according to the distribution
   case $OS in
       Ubuntu|Debian|Linux\ Mint)
           sudo apt-get update -y && sudo apt-get upgrade -y
@@ -284,21 +284,112 @@ function update_system() {
           sudo pacman -Syu
           ;;
       *)
-          echo "Distribution '$OS' non prise en charge pour la mise à jour automatique."
+          echo "Distribution '$OS' is not supported for automatic update."
           return 1
           ;;
   esac
 
-  echo "Mise à jour terminée."
+  echo "Update completed."
+}
+
+
+# @function
+# @name: update_bashrc
+# @description: Fetches a specified branch or release (tag) from the upstream repository (https://github.com/Redstoneur/bashrc), and replaces the user's $HOME/.bashrc and $HOME/.shells with the version from that ref. If called without parameters, the function attempts to use the latest tag; if there are no tags it falls back to the 'master' branch. The fetched content is cloned into a temporary directory, a backup of existing files is created, files are replaced, the new .bashrc is sourced, and the temporary clone is removed at the end.
+# @usage: update_bashrc [<branch-or-tag>]
+# @param: [branch-or-tag] - Optional. A branch name or a tag (release) to fetch. If omitted, the latest tag is used; otherwise use master.
+function update_bashrc() {
+  local ref="$1"
+  local remote="https://github.com/Redstoneur/bashrc"
+  local home_bashrc home_shells ts latest_tag
+
+  home_bashrc="$HOME/.bashrc"
+  home_shells="$HOME/.shells"
+  ts=$(date +"%Y%m%d_%H%M%S")
+
+  # Check git available
+  if ! command -v git >/dev/null 2>&1; then
+    echo "git is not installed or not in PATH. Aborting."
+    return 1
+  fi
+
+  git clone "$remote" /tmp/bashrc-upgrade
+  if [ $? -ne 0 ]; then
+    echo "Failed to clone repository. Aborting."
+    return 1
+  fi
+
+  cd /tmp/bashrc-upgrade || return 1
+
+  if [ -n "$ref" ]; then
+    git checkout "$ref"
+    if [ $? -ne 0 ]; then
+      echo "Failed to checkout ref '$ref'. Aborting."
+      rm -rf /tmp/bashrc-upgrade
+      return 1
+    fi
+    latest_tag="$ref"
+  else
+    latest_tag=$(git describe --tags "$(git rev-list --tags --max-count=1)" 2>/dev/null)
+    if [ -n "$latest_tag" ]; then
+      git checkout "$latest_tag"
+    else
+      if git show-ref --verify --quiet refs/heads/master; then
+        git checkout master
+      else
+        echo "No tags or master branch found. Aborting."
+        rm -rf /tmp/bashrc-upgrade
+        return 1
+      fi
+    fi
+  fi
+
+  # Backup existing files
+  mkdir -p "$HOME/.bashrc_backups/$ts" || { echo "Failed to create backup directory. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+  cp -r "$home_bashrc" "$HOME/.bashrc_backups/$ts/" || { echo "Failed to backup .bashrc. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+  cp -r "$home_shells" "$HOME/.bashrc_backups/$ts/" || { echo "Failed to backup .shells. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+
+  # Replace files
+  rm -rf "$home_bashrc"
+  rm -rf "$home_shells"
+  cp -r ./.bashrc "$home_bashrc" || { echo "Failed to copy new .bashrc. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+  cp -r ./.shells "$home_shells" || { echo "Failed to copy new .shells. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+
+  # Source the new .bashrc
+  if ! source "$home_bashrc"; then
+    echo "Failed to source new .bashrc. Aborting."
+    rm -rf /tmp/bashrc-upgrade
+    # Restore previous files from backup
+    rm -rf "$home_bashrc" "$home_shells"
+    cp -r "$HOME/.bashrc_backups/$ts/.bashrc" "$home_bashrc" || echo "Failed to restore $HOME/.bashrc from backup"
+    cp -r "$HOME/.bashrc_backups/$ts/.shells" "$home_shells" || echo "Failed to restore $HOME/.shells from backup"
+    echo "Restored previous $HOME/.bashrc and $HOME/.shells from backup."
+    return 1
+  fi
+
+  echo "Update completed. Backup created at $HOME/.bashrc_backups/$ts"
+
+  # Clean up
+  cd || return 1
+  rm -rf /tmp/bashrc-upgrade
+
+  # Update the file that contains the current bashrc version
+  echo "$latest_tag" > "$HOME/.bashrc_version" 2>/dev/null || echo "unknown" > "$HOME/.bashrc_version" 2>/dev/null
+
+  # Restart the shell to apply changes
+  exec "$SHELL" -l
+
+  return 0
+
 }
 
 # @function
 # @name: my_export
 # @description: Display the exports
 # @usage: my_export
-# @param: Aucun
+# @param: None
 function my_export() {
-  echo "Export :" # Display the title
+  echo "Exports:" # Display the title
 
   # Read the file line by line and display the exports
   while IFS= read -r line; do
@@ -313,9 +404,9 @@ function my_export() {
 # @name: my_alias
 # @description: Display the aliases
 # @usage: my_alias
-# @param: Aucun
+# @param: None
 function my_alias() {
-  echo "Alias :" # Display the title
+  echo "Aliases:" # Display the title
 
   # Read the file line by line and display the aliases
   while IFS= read -r line; do
@@ -330,9 +421,9 @@ function my_alias() {
 # @name: my_function
 # @description: Display the functions
 # @usage: my_function
-# @param: Aucun
+# @param: None
 function my_function() {
-  echo "Function :" # Display the title
+  echo "Functions:" # Display the title
 
   local test_function=0 # Test if the line is a function
   local function_name="" # The name of the function
@@ -367,9 +458,9 @@ function my_function() {
 # @name: my_source
 # @description: Source the files
 # @usage: my_source
-# @param: Aucun
+# @param: None
 function my_source() {
-  echo "Source :" # Display the title
+  echo "Source:" # Display the title
 
   echo ".bashrc" # Display the file
 
@@ -386,7 +477,7 @@ function my_source() {
 # @name: my
 # @description: Display the exports, aliases, functions, and source the files
 # @usage: my
-# @param: Aucun
+# @param: None
 function my() {
   # Display the exports, aliases, functions, and source the files
   my_export
@@ -400,7 +491,7 @@ function my() {
 
 # @function
 # @name: my_man
-# @description: Display the information about un alias, function, export, or source custom command
+# @description: Display the information about an alias, function, export, or source custom command
 # @usage: my_man command
 # @param: [command] - The name of the command to display information about
 function my_man() {
@@ -411,11 +502,11 @@ function my_man() {
 
   if [ $# -ne 1 ]; then
     if [ $# -lt 1 ]; then
-      echo "Too few parameters : 1 parameter expected"
+      echo "Too few parameters: 1 parameter expected"
       echo
       my_man "my_man"
     else
-      echo "Too many parameters : 1 parameter expected"
+      echo "Too many parameters: 1 parameter expected"
       echo
       my_man "my_man"
     fi
@@ -440,10 +531,10 @@ function my_man() {
     type=$1
     name=$(echo "$2" | grep -oE "@name: [^\"]+" | cut -d ' ' -f 2-) # The name of the custom command
     desc=$(echo "$3" | grep -oE "@description: [^\"]+" | cut -d ' ' -f 2-) # The description of the custom command
-    echo "Commande $name :"
+    echo "Command $name:"
     echo "- Name : $name"
     echo "- Type : $type"
-    echo "- description : $desc"
+    echo "- Description : $desc"
 
     if [[ $4 != "" ]]; then
       usage=$(echo "$4" | grep -oE "@usage: [^\"]+" | cut -d ' ' -f 2-) # The usage of the custom command
@@ -508,5 +599,5 @@ function my_man() {
     fi
   done <<< "$all_data"
 
-  echo "Commande non trouvée"
+  echo "Command not found"
 }
