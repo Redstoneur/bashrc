@@ -1,7 +1,36 @@
 #!/bin/bash
+# File: .bashrc_deploy.sh
+#
+# Description:
+#   Deployment helper script to install, update or uninstall a set of bash
+#   configuration files (.bashrc and .shells) from a remote git repository.
+#
+# Behavior:
+#   - clone the remote repository into /tmp/bashrc-upgrade
+#   - checkout a specific ref (tag, branch or commit) when provided
+#   - backup existing files into $HOME/.bashrc_backups/<timestamp|initial>
+#   - copy deployed files to $HOME and write a version marker to
+#     $HOME/.bashrc_version
+#   - source the new .bashrc and exec a login shell to apply changes
+#
+# Safety / side effects:
+#   - requires 'git' to be available in PATH
+#   - creates, overwrites and removes files under $HOME (.bashrc, .shells,
+#     .bashrc_backups, .bashrc_version)
+#   - will exec "$SHELL" -l at the end of install/update/uninstall which
+#     replaces the current process if successful
+#
+# Usage examples:
+#   ./deploy.sh --install --version v1.2.3
+#   ./deploy.sh --update --version master
+#   ./deploy.sh --uninstall
 
 remote="https://github.com/Redstoneur/bashrc"
 
+# help: print usage information.
+#
+# This function simply prints the script usage and supported options.
+# It is informational only and does not modify any files.
 function help() {
   echo "Usage: ./deploy.sh [options]"
   echo ""
@@ -18,6 +47,23 @@ function help() {
   echo "  ./deploy.sh --uninstall"
 }
 
+# install: perform a fresh installation from the remote repository.
+#
+# Signature: install <ref>
+#   ref (optional) - git reference to checkout (tag, branch or commit)
+#
+# Steps performed:
+#   1. refuse if a .bashrc_version file already exists (prevents accidental re-install)
+#   2. ensure 'git' is available
+#   3. clone the remote repo to /tmp/bashrc-upgrade and checkout the chosen ref
+#   4. create an initial backup directory and save existing .bashrc/.shells
+#   5. copy new .bashrc and .shells into $HOME
+#   6. source the new .bashrc; on failure, restore the backup and abort
+#   7. write the deployed version into $HOME/.bashrc_version
+#   8. exec a login shell to apply changes
+#
+# Exit codes:
+#   0 on success, non-zero on failure.
 function install() {
   local ref="$1"
   local home_bashrc home_shells latest_tag
@@ -112,6 +158,21 @@ function install() {
   return 0
 }
 
+# update: update an existing deployment to a new ref.
+#
+# Signature: update <ref>
+#   ref (optional) - git reference to checkout. If not provided, the script
+#   attempts to use the latest tag or master as a fallback.
+#
+# Steps performed:
+#   - require an existing installation (checks $HOME/.bashrc_version)
+#   - clone repo, checkout requested ref
+#   - create a timestamped backup of current files
+#   - replace files with new versions and source the .bashrc
+#   - on failure restore the timestamped backup
+#   - record the deployed version and exec a login shell
+#
+# Exit codes: 0 on success, non-zero otherwise.
 function update() {
   local ref="$1"
   local home_bashrc home_shells ts latest_tag
@@ -201,6 +262,15 @@ function update() {
   return 0
 }
 
+# uninstall: remove the deployed files and try to restore the initial backup.
+#
+# Steps performed:
+#   - verify there is an installation by checking $HOME/.bashrc_version
+#   - remove deployed files and the version marker
+#   - if an initial backup exists, restore it and remove the backup dir
+#   - source the restored .bashrc and exec a login shell
+#
+# Exit codes: 0 on success, non-zero on failure.
 function uninstall() {
   local home_bashrc home_shells
   home_bashrc="$HOME/.bashrc"
@@ -247,6 +317,15 @@ function uninstall() {
   return 0
 }
 
+# deployer: parse CLI arguments and call the appropriate action.
+#
+# Supported flags:
+#   -i/--install    : perform a fresh install
+#   -up/--update    : update an existing installation
+#   -un/--uninstall : uninstall the deployment
+#   -v/--version    : follow by a git ref for install/update
+#
+# The options --install, --update and --uninstall are mutually exclusive.
 function deployer() {
   local install_flag=0 update_flag=0 uninstall_flag=0 version=""
 
@@ -302,7 +381,7 @@ function deployer() {
   return 0
 }
 
+# Entrypoint: forward all CLI args to deployer
+
 deployer "$@"
-
-
 
