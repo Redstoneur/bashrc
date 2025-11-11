@@ -357,7 +357,7 @@ function deployer() {
           echo "Error: --version option requires an argument." >&2
           return 1
         fi;;
-      *) echo "Option inconnue: $1" >&2; help; return 1;;
+      *) echo "Unknown option: $1" >&2; help; return 1;;
     esac
   done
 
