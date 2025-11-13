@@ -59,15 +59,15 @@ function help() {
 }
 
 
-# write_latest_tag: écrire un marqueur de version local.
+# write_latest_tag: write a local version marker.
 # Signature: write_latest_tag <ref>
-#   ref (optionnel) - marqueur textuel à écrire dans `HOME/.bashrc_version`.
-# Comportement:
-#   - si `ref` est non vide, écrit `local-[<ref>]` dans `HOME/.bashrc_version`.
-#   - sinon écrit `local`.
-#   - les erreurs d'écriture sont redirigées vers /dev/null pour éviter du bruit.
-# Retour:
-#   0 en cas de succès, non‑zéro si l'écriture échoue.
+#   ref (optional) - textual marker to write into `HOME/.bashrc_version`.
+# Behavior:
+#   - if `ref` is non-empty, writes `local-[<ref>]` into `HOME/.bashrc_version`.
+#   - otherwise writes `local`.
+#   - write errors are redirected to /dev/null to avoid noise.
+# Return:
+#   0 on success, non-zero if write fails.
 function write_latest_tag() {
   local ref="$1"
   
