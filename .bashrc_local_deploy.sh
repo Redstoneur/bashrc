@@ -308,7 +308,7 @@ function deployer() {
   fi
 
   if [[ -n "$version" && $uninstall_flag -eq 1 ]]; then
-    echo "Erreur: L'option --version ne peut pas être utilisée avec --uninstall." >&2
+    echo "Error: The --version option cannot be used with --uninstall." >&2
     return 1
   fi
 
