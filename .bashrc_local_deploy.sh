@@ -314,6 +314,8 @@ function deployer() {
 
   if [[ -z "$version" ]]; then
     version="local"
+  else
+    version="local-[$version]"
   fi
 
   if [[ $install_flag -eq 1 ]]; then

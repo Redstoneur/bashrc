@@ -190,6 +190,19 @@ function update() {
     return 1
   fi
 
+  # Check installed version is not a local version
+  if grep -q "local" "$HOME/.bashrc_version" 2>/dev/null; then
+    local answer=""
+    while true; do
+      read -r -p "Current installation is a local version. Are you sure you want to update? (y/n): " answer
+      case $answer in
+        [Yy]* ) break;;
+        [Nn]* ) echo "Update aborted by user."; return 1;;
+        * ) echo "Please answer yes (y) or no (n).";;
+      esac
+    done
+  fi
+
   # Check git available
   if ! command -v git >/dev/null 2>&1; then
     echo "git is not installed or not in PATH. Aborting."
