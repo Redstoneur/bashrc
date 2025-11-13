@@ -303,7 +303,7 @@ function deployer() {
   done
 
   if [[ $((install_flag + update_flag + uninstall_flag)) -gt 1 ]]; then
-    echo "Erreur: Les options --install, --update et --uninstall sont mutuellement exclusives." >&2
+    echo "Error: The --install, --update and --uninstall options are mutually exclusive." >&2
     return 1
   fi
 
