@@ -136,7 +136,7 @@ function install() {
 # Signature: update <ref>
 #   ref (optional) - textual marker to write to $HOME/.bashrc_version (for tracking)
 #
-# Behaviour:
+# Behavior:
 #   - require an existing installation by checking $HOME/.bashrc_version
 #   - create a timestamped backup under $HOME/.bashrc_backups/<timestamp>
 #   - replace .bashrc and .shells with files from the current directory
@@ -201,7 +201,7 @@ function update() {
 
 # Local uninstall: remove the deployed files and try to restore the initial backup.
 #
-# Behaviour:
+# Behavior:
 #   - verify there is an installation by checking $HOME/.bashrc_version
 #   - remove deployed files and the version marker
 #   - restore initial backup if it exists and remove that backup dir
