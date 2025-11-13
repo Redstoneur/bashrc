@@ -123,7 +123,7 @@ Basic usage:
 ```
 
 Notes:
-- The script requires to have git clone the repository and copy it on the local machine.
+- The script requires you to clone the repository with git and copy it to the local machine.
 
 ## License
 
