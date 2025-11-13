@@ -314,7 +314,7 @@ function update_bashrc() {
   fi
 
   # Check installed version is not a local version
-  if grep -q "local" "$HOME/.bashrc_version" 2>/dev/null; then
+  if grep -q "^local" "$HOME/.bashrc_version" 2>/dev/null; then
     local answer=""
     while true; do
       read -r -p "Current installation is a local version. Are you sure you want to update? (y/n): " answer
