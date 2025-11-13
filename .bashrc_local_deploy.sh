@@ -267,7 +267,7 @@ function deployer() {
   local install_flag=0 update_flag=0 uninstall_flag=0 version=""
 
   if [[ $# -eq 0 ]]; then
-    echo "Aucun paramètre fourni."
+    echo "No parameters provided."
     help
     return 1
   fi
