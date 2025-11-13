@@ -295,7 +295,7 @@ function deployer() {
         fi
         ;;
       *)
-        echo "Option inconnue : $1" >&2
+        echo "Unknown option: $1" >&2
         help
         return 1
         ;;
