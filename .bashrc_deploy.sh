@@ -21,9 +21,9 @@
 #     replaces the current process if successful
 #
 # Usage examples:
-#   ./deploy.sh --install --version v1.2.3
-#   ./deploy.sh --update --version master
-#   ./deploy.sh --uninstall
+#   ./.bashrc_deploy.sh --install --version v1.2.3
+#   ./.bashrc_deploy.sh --update --version master
+#   ./.bashrc_deploy.sh --uninstall
 
 remote="https://github.com/Redstoneur/bashrc"
 
@@ -32,7 +32,7 @@ remote="https://github.com/Redstoneur/bashrc"
 # This function simply prints the script usage and supported options.
 # It is informational only and does not modify any files.
 function help() {
-  echo "Usage: ./deploy.sh [options]"
+  echo "Usage: ./.bashrc_deploy.sh [options]"
   echo ""
   echo "Options:"
   echo "  -h, --help         Show this help message and exit"
@@ -42,9 +42,9 @@ function help() {
   echo "  -v, --version VER  [OPTIONAL] Specify the version to deploy (default: master or latest tag)"
   echo ""
   echo "Example:"
-  echo "  ./deploy.sh --install --version v1.2.3"
-  echo "  ./deploy.sh -up --version master"
-  echo "  ./deploy.sh --uninstall"
+  echo "  ./.bashrc_deploy.sh --install --version v1.2.3"
+  echo "  ./.bashrc_deploy.sh -up --version master"
+  echo "  ./.bashrc_deploy.sh --uninstall"
 }
 
 # install: perform a fresh installation from the remote repository.

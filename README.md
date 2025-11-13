@@ -75,7 +75,9 @@ To avoid this, you can convert the files to Unix format by running the following
 dos2unix .bashrc .shells/*
 ```
 
-## Deployer (deploy.sh)
+## Deployer
+
+### Online Deployer
 
 A script named `.bashrc_deploy.sh` has been added to simplify deployment on Linux machines. It allows you to:
 
@@ -99,6 +101,29 @@ Basic usage:
 Notes:
 
 - The script requires `git` to clone the repository.
+
+### Local Deployer
+
+A script named `bashrc_deploy_local.sh` has been added to simplify local deployment on Linux machines. It allows you to:
+- Install the project from a local copy of the repository,
+- Update an existing installation from a local copy,
+- Uninstall the project.
+
+Basic usage:
+
+```bash
+# install
+./bashrc_deploy_local.sh --install my-local-ref
+
+# update an existing installation
+./bashrc_deploy_local.sh --update my-local-ref
+
+# uninstall
+./bashrc_deploy_local.sh --uninstall
+```
+
+Notes:
+- The script requires to have git clone the repository and copy it on the local machine.
 
 ## License
 
