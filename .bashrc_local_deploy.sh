@@ -28,10 +28,11 @@
 #   ./.bashrc_local_deploy.sh --uninstall
 #
 # Options:
-#   --install [ref]   Perform a fresh install from the current directory. Optionally specify a ref/tag/marker.
-#   --update [ref]    Update an existing installation using files from the current directory.
-#   --uninstall       Remove deployed files and restore the initial backup (if present).
-#   --help, -h        Show this help message and exit.
+#   -i, --install [ref]   Perform a fresh install from the current directory. Optionally specify a ref/tag/marker.
+#   -up, --update [ref]   Update an existing installation using files from the current directory.
+#   -un, --uninstall      Remove deployed files and restore the initial backup (if present).
+#   -v, --version VER     Optional version/ref marker for install/update.
+#   -h, --help            Show this help message and exit.
 #
 # Exit codes:
 #   0 on success, non-zero on failure.
@@ -44,13 +45,15 @@ function help() {
   echo ""
   echo "Options:"
   echo "  -h, --help         Show this help message and exit"
-  echo "  --install [ref]    Install the local files to \$HOME (optional ref marker)"
-  echo "  --update [ref]     Update an existing local installation (optional ref marker)"
-  echo "  --uninstall        Uninstall and attempt to restore the initial backup"
+  echo "  -i, --install [ref]    Install the local files to \$HOME (optional ref marker)"
+  echo "  -up, --update [ref]    Update an existing local installation (optional ref marker)"
+  echo "  -un, --uninstall       Uninstall and attempt to restore the initial backup"
+  echo "  -v, --version VER      Optional version/ref marker for install/update"
   echo ""
   echo "Examples:"
   echo "  ./.bashrc_local_deploy.sh --install"
-  echo "  ./.bashrc_local_deploy.sh --update my-local-ref"
+  echo "  ./.bashrc_local_deploy.sh -i --version my-local-ref"
+  echo "  ./.bashrc_local_deploy.sh -up -v v1.2"
   echo "  ./.bashrc_local_deploy.sh --uninstall"
   return 0
 }
@@ -232,8 +235,8 @@ function uninstall() {
     return 1
   fi
 
-  # Remove initial backup after restoration
-  rm -rf "$HOME/.bashrc_backups/initial"
+  # Remove backup after restoration
+  rm -rf "$HOME/.bashrc_backups"
 
   # shellcheck disable=SC1090
   if ! source "$home_bashrc"; then
@@ -254,40 +257,82 @@ function uninstall() {
 # deployer: parse CLI arguments and call the appropriate action.
 #
 # Supported flags:
-#   --install    : perform a fresh install
-#   --update     : update existing installation
-#   --uninstall  : uninstall the deployment
+#   -i/--install    : perform a fresh install
+#   -up/--update    : update existing installation
+#   -un/--uninstall : uninstall the deployment
+#   -v/--version    : follow by a ref for install/update
 #
-# Notes:
-#   - The local helper accepts simple, mutually exclusive actions: install, update, uninstall.
-#   - When a ref is supplied it is used only as a textual marker written into $HOME/.bashrc_version
+# The options --install, --update and --uninstall are mutually exclusive.
 function deployer() {
-  local cmd ref
+  local install_flag=0 update_flag=0 uninstall_flag=0 version=""
 
-  cmd="$1"
-  ref="$2"
+  if [[ $# -eq 0 ]]; then
+    echo "Aucun paramètre fourni."
+    help
+    return 1
+  fi
 
-  case "$cmd" in
-    --help|-h)
-      help
-      ;;
-    --install)
-      install "$ref"
-      ;;
-    --update)
-      update "$ref"
-      ;;
-    --uninstall)
-      uninstall
-      ;;
-    *)
-      echo "Usage: $0 --install [ref]"
-      echo "       $0 --update [ref]"
-      echo "       $0 --uninstall"
-      echo "       $0 --help"
-      return 1
-      ;;
-  esac
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help)
+        help; return 0
+        ;;
+      -i|--install)
+        install_flag=1; shift
+        ;;
+      -up|--update)
+        update_flag=1; shift
+        ;;
+      -un|--uninstall)
+        uninstall_flag=1; shift
+        ;;
+      -v|--version)
+        if [[ -n "$2" && "$2" != -* ]]; then
+          version="$2"; shift 2
+        else
+          echo "Erreur: l'option --version requiert un argument." >&2
+          return 1
+        fi
+        ;;
+      *)
+        echo "Option inconnue : $1" >&2
+        help
+        return 1
+        ;;
+    esac
+  done
+
+  if [[ $((install_flag + update_flag + uninstall_flag)) -gt 1 ]]; then
+    echo "Erreur: Les options --install, --update et --uninstall sont mutuellement exclusives." >&2
+    return 1
+  fi
+
+  if [[ -n "$version" && $uninstall_flag -eq 1 ]]; then
+    echo "Erreur: L'option --version ne peut pas être utilisée avec --uninstall." >&2
+    return 1
+  fi
+
+  if [[ -z "$version" ]]; then
+    version="local"
+  fi
+
+  if [[ $install_flag -eq 1 ]]; then
+    install "$version" || return $?
+  fi
+  if [[ $update_flag -eq 1 ]]; then
+    update "$version" || return $?
+  fi
+  if [[ $uninstall_flag -eq 1 ]]; then
+    uninstall || return $?
+  fi
+
+  if [[ $install_flag -eq 0 && $update_flag -eq 0 && $uninstall_flag -eq 0 ]]; then
+    echo "Aucune action spécifiée." >&2
+    help
+    return 1
+  fi
+
+  return 0
 }
 
 # Entrypoint: forward all CLI args to deployer

@@ -308,8 +308,8 @@ function uninstall() {
     return 1
   fi
 
-  # Remove initial backup after restoration
-  rm -rf "$HOME/.bashrc_backups/initial"
+  # Remove backup after restoration
+  rm -rf "$HOME/.bashrc_backups"
 
   # Source the restored .bashrc
   if ! source "$home_bashrc"; then
