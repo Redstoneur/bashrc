@@ -58,6 +58,35 @@ function help() {
   return 0
 }
 
+
+# write_latest_tag: écrire un marqueur de version local.
+# Signature: write_latest_tag <ref>
+#   ref (optionnel) - marqueur textuel à écrire dans `HOME/.bashrc_version`.
+# Comportement:
+#   - si `ref` est non vide, écrit `local-[<ref>]` dans `HOME/.bashrc_version`.
+#   - sinon écrit `local`.
+#   - les erreurs d'écriture sont redirigées vers /dev/null pour éviter du bruit.
+# Retour:
+#   0 en cas de succès, non‑zéro si l'écriture échoue.
+function write_latest_tag() {
+  local ref="$1"
+  
+  if [ -n "$ref" ]; then
+    echo "local-[$ref]" > "$HOME/.bashrc_version" 2>/dev/null
+  else
+    echo "local" > "$HOME/.bashrc_version" 2>/dev/null
+  fi
+  
+  # Check if the write was successful with checking if the file exists and is not empty
+  if [ ! -s "$HOME/.bashrc_version" ]; then
+    echo "Failed to write version marker to $HOME/.bashrc_version" >&2
+    return 1
+  fi
+  
+  return 0
+    
+}
+
 # install: perform a fresh installation from the current directory.
 #
 # Signature: install <ref>
@@ -74,7 +103,7 @@ function help() {
 # Exit codes:
 #   0 on success, non-zero on failure.
 function install() {
-  local latest_tag="$1"
+  local ref="$1"
   local home_bashrc home_shells
 
   home_bashrc="$HOME/.bashrc"
@@ -121,7 +150,7 @@ function install() {
   cd || return 1
 
   # Save the current version
-  echo "$latest_tag" > "$HOME/.bashrc_version" 2>/dev/null
+  write_latest_tag "$ref" || return 1
 
   # Restart the shell to apply changes
   exec "$SHELL" -l
@@ -183,12 +212,8 @@ function update() {
     return 1
   fi
 
-  # Record the ref (if any)
-  if [ -n "$ref" ]; then
-    echo "$ref" > "$HOME/.bashrc_version" 2>/dev/null
-  else
-    echo "local" > "$HOME/.bashrc_version" 2>/dev/null
-  fi
+  # Save the current version
+  write_latest_tag "$ref" || return 1
 
   echo "Update completed. Backup created at $HOME/.bashrc_backups/$ts"
 
@@ -310,12 +335,6 @@ function deployer() {
   if [[ -n "$version" && $uninstall_flag -eq 1 ]]; then
     echo "Error: The --version option cannot be used with --uninstall." >&2
     return 1
-  fi
-
-  if [[ -z "$version" ]]; then
-    version="local"
-  else
-    version="local-[$version]"
   fi
 
   if [[ $install_flag -eq 1 ]]; then
