@@ -87,7 +87,7 @@ function install() {
   fi
 
   # Create initial backup for .bashrc and .shells if they exist
-  mkdir -p "$HOME/.bashrc_backups/initial" || { echo "Failed to create backup directory. Aborting."; rm -rf /tmp/bashrc-upgrade; return 1; }
+  mkdir -p "$HOME/.bashrc_backups/initial" || { echo "Failed to create backup directory. Aborting."; return 1; }
   if [ -f "$home_bashrc" ]; then
     cp -r "$home_bashrc" "$HOME/.bashrc_backups/initial"
   fi
