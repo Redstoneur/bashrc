@@ -23,13 +23,13 @@
 #
 # Usage examples:
 #   ./.bashrc_local_deploy.sh --install
-#   ./.bashrc_local_deploy.sh --install v1.0-local
-#   ./.bashrc_local_deploy.sh --update v1.0-local
+#   ./.bashrc_local_deploy.sh --install --version master
+#   ./.bashrc_local_deploy.sh --update --version v1.2.0
 #   ./.bashrc_local_deploy.sh --uninstall
 #
 # Options:
-#   -i, --install [ref]   Perform a fresh install from the current directory. Optionally specify a ref/tag/marker.
-#   -up, --update [ref]   Update an existing installation using files from the current directory.
+#   -i, --install   Perform a fresh install from the current directory. Optionally specify a ref/tag/marker.
+#   -up, --update   Update an existing installation using files from the current directory.
 #   -un, --uninstall      Remove deployed files and restore the initial backup (if present).
 #   -v, --version VER     Optional version/ref marker for install/update.
 #   -h, --help            Show this help message and exit.
@@ -45,8 +45,8 @@ function help() {
   echo ""
   echo "Options:"
   echo "  -h, --help         Show this help message and exit"
-  echo "  -i, --install [ref]    Install the local files to \$HOME (optional ref marker)"
-  echo "  -up, --update [ref]    Update an existing local installation (optional ref marker)"
+  echo "  -i, --install    Install the local files to \$HOME (optional ref marker)"
+  echo "  -up, --update    Update an existing local installation (optional ref marker)"
   echo "  -un, --uninstall       Uninstall and attempt to restore the initial backup"
   echo "  -v, --version VER      Optional version/ref marker for install/update"
   echo ""
