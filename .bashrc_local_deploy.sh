@@ -329,7 +329,7 @@ function deployer() {
   fi
 
   if [[ $install_flag -eq 0 && $update_flag -eq 0 && $uninstall_flag -eq 0 ]]; then
-    echo "Aucune action spécifiée." >&2
+    echo "No action specified." >&2
     help
     return 1
   fi
