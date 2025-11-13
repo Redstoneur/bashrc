@@ -21,9 +21,9 @@
 #     replaces the current process if successful
 #
 # Usage examples:
-#   ./deploy.sh --install --version v1.2.3
-#   ./deploy.sh --update --version master
-#   ./deploy.sh --uninstall
+#   ./.bashrc_deploy.sh --install --version v1.2.3
+#   ./.bashrc_deploy.sh --update --version master
+#   ./.bashrc_deploy.sh --uninstall
 
 remote="https://github.com/Redstoneur/bashrc"
 
@@ -32,7 +32,7 @@ remote="https://github.com/Redstoneur/bashrc"
 # This function simply prints the script usage and supported options.
 # It is informational only and does not modify any files.
 function help() {
-  echo "Usage: ./deploy.sh [options]"
+  echo "Usage: ./.bashrc_deploy.sh [options]"
   echo ""
   echo "Options:"
   echo "  -h, --help         Show this help message and exit"
@@ -42,9 +42,9 @@ function help() {
   echo "  -v, --version VER  [OPTIONAL] Specify the version to deploy (default: master or latest tag)"
   echo ""
   echo "Example:"
-  echo "  ./deploy.sh --install --version v1.2.3"
-  echo "  ./deploy.sh -up --version master"
-  echo "  ./deploy.sh --uninstall"
+  echo "  ./.bashrc_deploy.sh --install --version v1.2.3"
+  echo "  ./.bashrc_deploy.sh -up --version master"
+  echo "  ./.bashrc_deploy.sh --uninstall"
 }
 
 # install: perform a fresh installation from the remote repository.
@@ -190,6 +190,19 @@ function update() {
     return 1
   fi
 
+  # Check installed version is not a local version
+  if grep -q "^local" "$HOME/.bashrc_version" 2>/dev/null; then
+    local answer=""
+    while true; do
+      read -r -p "Current installation is a local version. Are you sure you want to update? (y/n): " answer
+      case $answer in
+        [Yy]* ) break;;
+        [Nn]* ) echo "Update aborted by user."; return 1;;
+        * ) echo "Please answer yes (y) or no (n).";;
+      esac
+    done
+  fi
+
   # Check git available
   if ! command -v git >/dev/null 2>&1; then
     echo "git is not installed or not in PATH. Aborting."
@@ -308,8 +321,8 @@ function uninstall() {
     return 1
   fi
 
-  # Remove initial backup after restoration
-  rm -rf "$HOME/.bashrc_backups/initial"
+  # Remove backup after restoration
+  rm -rf "$HOME/.bashrc_backups"
 
   # Source the restored .bashrc
   if ! source "$home_bashrc"; then
