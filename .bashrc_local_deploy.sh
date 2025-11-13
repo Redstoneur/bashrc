@@ -77,7 +77,7 @@ function write_latest_tag() {
     echo "local" > "$HOME/.bashrc_version" 2>/dev/null
   fi
   
-  # Check if the write was successful with checking if the file exists and is not empty
+  # Check if the write was successful by checking if the file exists and is not empty
   if [ ! -s "$HOME/.bashrc_version" ]; then
     echo "Failed to write version marker to $HOME/.bashrc_version" >&2
     return 1
