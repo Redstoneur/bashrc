@@ -113,10 +113,10 @@ Basic usage:
 
 ```bash
 # install
-./bashrc_deploy_local.sh --install my-local-ref
+./bashrc_deploy_local.sh --install --version my-local-ref
 
 # update an existing installation
-./bashrc_deploy_local.sh --update my-local-ref
+./bashrc_deploy_local.sh --update --version my-local-ref
 
 # uninstall
 ./bashrc_deploy_local.sh --uninstall
